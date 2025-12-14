@@ -1470,6 +1470,19 @@ function AnwaltsMaske() {
     indexmiete557b: "",
     staffelmiete: "",
     faelligkeit: "",
+    mietanpassung: "",
+    mpbStatus: "",
+    mpbVormietverhaeltnis: "",
+    mpbGrenze: "",
+    mpbGrundVormiete: false,
+    mpbVormieteBetrag: "",
+    mpbGrundModernisierung: false,
+    mpbModernisierungDetails: "",
+    mpbGrundErstmiete: false,
+    mpbErstmieteDetails: "",
+    bkZusatzPositionen: [],
+    wegVerweisSchluessel: "",
+    heizwwParagraph: "",
     untervermietungKlausel: "",
     tierhaltungTon: "",
     srModell: "",
@@ -1534,8 +1547,24 @@ function AnwaltsMaske() {
 
   const enforceExclusivity = (data) => {
     const next = { ...data };
-    if (next.indexmiete557b === "Ja") next.staffelmiete = "Nein";
-    if (next.staffelmiete === "Ja") next.indexmiete557b = "Nein";
+    if (next.mietanpassung === "index") {
+      next.indexmiete557b = "Ja";
+      next.staffelmiete = "Nein";
+    } else if (next.mietanpassung === "staffel") {
+      next.indexmiete557b = "Nein";
+      next.staffelmiete = "Ja";
+    } else if (next.mietanpassung === "normalfall") {
+      next.indexmiete557b = "Nein";
+      next.staffelmiete = "Nein";
+    } else if (!next.mietanpassung) {
+      if (next.indexmiete557b === "Ja") next.mietanpassung = "index";
+      else if (next.staffelmiete === "Ja") next.mietanpassung = "staffel";
+      else if (
+        next.indexmiete557b === "Nein" &&
+        next.staffelmiete === "Nein"
+      )
+        next.mietanpassung = "normalfall";
+    }
     return next;
   };
 
@@ -1619,6 +1648,17 @@ function AnwaltsMaske() {
     setFormData((prev) => enforceExclusivity({ ...prev, [field]: value }));
   };
 
+  const toggleArrayValue = (field, value) => {
+    setFormData((prev) => {
+      const current = prev[field] || [];
+      const exists = current.includes(value);
+      const nextValues = exists
+        ? current.filter((item) => item !== value)
+        : [...current, value];
+      return enforceExclusivity({ ...prev, [field]: nextValues });
+    });
+  };
+
   const nextStep = () => {
     setCurrentStep((prev) =>
       Math.min(prev + 1, steps.length - 1)
@@ -1688,6 +1728,32 @@ function AnwaltsMaske() {
   };
 
   const renderStep = () => {
+    const mietanpassungLabels = {
+      normalfall: "Normalfall (§ 558 BGB)",
+      index: "Indexmiete (§ 557b BGB)",
+      staffel: "Staffelmiete",
+    };
+
+    const mpbStatusLabels = {
+      neubau: "Neubau (nie zuvor vermietet)",
+      bereits_vermietet: "Bereits vermietet",
+    };
+
+    const mpbVormietLabels = {
+      vor_juni_2015: "VOR 01.06.2015",
+      nach_juni_2015: "NACH 01.06.2015",
+    };
+
+    const mpbGrenzeLabels = {
+      ja: "Ja, unter der Grenze",
+      nein: "Nein, über der Grenze",
+    };
+
+    const heizwwLabels = {
+      ja: "Ja - separater § für Heiz-/Warmwasserkosten",
+      nein: "Nein - zusammen mit BK",
+    };
+
     switch (currentStep) {
       case 0:
         if (showImport) {
@@ -1905,139 +1971,416 @@ function AnwaltsMaske() {
           </div>
         );
 
-      case 2:
+      case 2: {
+        const showMietpreisbremse = (() => {
+          if (!mandantendaten?.bezugsfertigSeit) return false;
+          const parsedDate = new Date(mandantendaten.bezugsfertigSeit);
+          if (Number.isNaN(parsedDate.getTime())) return false;
+          return parsedDate < new Date("2014-10-01");
+        })();
+
+        const showMpbStufe2 = formData.mpbStatus === "bereits_vermietet";
+        const showMpbStufe4 = formData.mpbGrenze === "nein";
+
         return (
-          <div>
-            <h2 className="section-title">
-              Miethöhe & Betriebskosten
-            </h2>
+          <div className="form-section-v2">
+            <h2 className="section-title">Miethöhe & Betriebskosten</h2>
 
-            <div className="alert alert-warning">
-              <strong>
-                ⚠️ Indexmiete und Staffelmiete schließen sich
-                gegenseitig aus!
-              </strong>
-            </div>
-
-            <div className="form-group">
-              <label className="label">
-                Indexmiete (§ 557b BGB){" "}
-                <span className="required">*</span>
+            <div className="field-v2">
+              <label>
+                Mietanpassung <span className="required">*</span>
               </label>
-              <div className="radio-group">
-                <label className="radio-label">
+              <div className="radio-group-v2">
+                <label className="radio-option-v2">
                   <input
                     type="radio"
-                    value="Ja"
-                    checked={formData.indexmiete557b === "Ja"}
+                    name="mietanpassung"
+                    value="normalfall"
+                    checked={formData.mietanpassung === "normalfall"}
                     onChange={(e) =>
-                      updateFormData(
-                        "indexmiete557b",
-                        e.target.value
-                      )
+                      updateFormData("mietanpassung", e.target.value)
                     }
                   />
-                  Ja - Indexmiete vereinbaren
+                  <span>Normalfall (Gesetzliche Regelungen § 558 BGB)</span>
                 </label>
-                <label className="radio-label">
+                <label className="radio-option-v2">
                   <input
                     type="radio"
-                    value="Nein"
-                    checked={
-                      formData.indexmiete557b === "Nein"
-                    }
+                    name="mietanpassung"
+                    value="index"
+                    checked={formData.mietanpassung === "index"}
                     onChange={(e) =>
-                      updateFormData(
-                        "indexmiete557b",
-                        e.target.value
-                      )
+                      updateFormData("mietanpassung", e.target.value)
                     }
                   />
-                  Nein
+                  <span>Indexmiete (§ 557b BGB)</span>
+                </label>
+                <label className="radio-option-v2">
+                  <input
+                    type="radio"
+                    name="mietanpassung"
+                    value="staffel"
+                    checked={formData.mietanpassung === "staffel"}
+                    onChange={(e) =>
+                      updateFormData("mietanpassung", e.target.value)
+                    }
+                  />
+                  <span>Staffelmiete</span>
                 </label>
               </div>
+              <p className="help-text">
+                Indexmiete und Staffelmiete schließen sich gegenseitig aus
+              </p>
             </div>
 
-            <div className="form-group">
-              <label className="label">
-                Staffelmiete{" "}
-                <span className="required">*</span>
-              </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="Ja"
-                    checked={formData.staffelmiete === "Ja"}
-                    onChange={(e) =>
-                      updateFormData(
-                        "staffelmiete",
-                        e.target.value
-                      )
-                    }
-                  />
-                  Ja - Staffelmiete vereinbaren
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="Nein"
-                    checked={formData.staffelmiete === "Nein"}
-                    onChange={(e) =>
-                      updateFormData(
-                        "staffelmiete",
-                        e.target.value
-                      )
-                    }
-                  />
-                  Nein
-                </label>
+            {showMietpreisbremse && (
+              <div
+                style={{
+                  background: "#fef2f2",
+                  padding: "20px",
+                  borderRadius: "8px",
+                  borderLeft: "4px solid #dc2626",
+                  margin: "20px 0",
+                }}
+              >
+                <h3 style={{ color: "#991b1b", marginBottom: "15px" }}>
+                  ⚠️ Mietpreisbremsen-Prüfung
+                </h3>
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#7f1d1d",
+                    marginBottom: "20px",
+                  }}
+                >
+                  Das Objekt wurde vor dem 01.10.2014 bezugsfertig. Bitte
+                  prüfen Sie die Mietpreisbremse.
+                </p>
+
+                <div className="field-v2">
+                  <label>
+                    Stufe 1: Status der Wohnung <span className="required">*</span>
+                  </label>
+                  <div className="radio-group-v2">
+                    <label className="radio-option-v2">
+                      <input
+                        type="radio"
+                        name="mpb_status"
+                        value="neubau"
+                        checked={formData.mpbStatus === "neubau"}
+                        onChange={(e) =>
+                          updateFormData("mpbStatus", e.target.value)
+                        }
+                      />
+                      <span>Neubau (nie zuvor vermietet)</span>
+                    </label>
+                    <label className="radio-option-v2">
+                      <input
+                        type="radio"
+                        name="mpb_status"
+                        value="bereits_vermietet"
+                        checked={
+                          formData.mpbStatus === "bereits_vermietet"
+                        }
+                        onChange={(e) =>
+                          updateFormData("mpbStatus", e.target.value)
+                        }
+                      />
+                      <span>Bereits vermietet</span>
+                    </label>
+                  </div>
+                </div>
+
+                {showMpbStufe2 && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "15px",
+                      background: "white",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <div className="field-v2">
+                      <label>
+                        Stufe 2: Vormietverhältnis begann... <span className="required">*</span>
+                      </label>
+                      <div className="radio-group-v2">
+                        <label className="radio-option-v2">
+                          <input
+                            type="radio"
+                            name="mpb_vormiet"
+                            value="vor_juni_2015"
+                            checked={
+                              formData.mpbVormietverhaeltnis ===
+                              "vor_juni_2015"
+                            }
+                            onChange={(e) =>
+                              updateFormData(
+                                "mpbVormietverhaeltnis",
+                                e.target.value
+                              )
+                            }
+                          />
+                          <span>VOR 01.06.2015</span>
+                        </label>
+                        <label className="radio-option-v2">
+                          <input
+                            type="radio"
+                            name="mpb_vormiet"
+                            value="nach_juni_2015"
+                            checked={
+                              formData.mpbVormietverhaeltnis ===
+                              "nach_juni_2015"
+                            }
+                            onChange={(e) =>
+                              updateFormData(
+                                "mpbVormietverhaeltnis",
+                                e.target.value
+                              )
+                            }
+                          />
+                          <span>NACH 01.06.2015</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div
+                  style={{
+                    marginTop: "20px",
+                    padding: "15px",
+                    background: "white",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div className="field-v2">
+                    <label>
+                      Stufe 3: Liegt die Miete innerhalb der Mietpreisbremse?{' '}
+                      <span className="required">*</span>
+                    </label>
+                    <div className="radio-group-v2">
+                      <label className="radio-option-v2">
+                        <input
+                          type="radio"
+                          name="mpb_grenze"
+                          value="ja"
+                          checked={formData.mpbGrenze === "ja"}
+                          onChange={(e) =>
+                            updateFormData("mpbGrenze", e.target.value)
+                          }
+                        />
+                        <span>
+                          Ja, unter der Grenze (max. 110% ortsübliche Vergleichsmiete)
+                        </span>
+                      </label>
+                      <label className="radio-option-v2">
+                        <input
+                          type="radio"
+                          name="mpb_grenze"
+                          value="nein"
+                          checked={formData.mpbGrenze === "nein"}
+                          onChange={(e) =>
+                            updateFormData("mpbGrenze", e.target.value)
+                          }
+                        />
+                        <span>Nein, über der Grenze</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                {showMpbStufe4 && (
+                  <div
+                    style={{
+                      marginTop: "20px",
+                      padding: "15px",
+                      background: "#fef3c7",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <h4 style={{ color: "#92400e", marginBottom: "10px" }}>
+                      Stufe 4: Begründung für Überschreitung
+                    </h4>
+
+                    <div className="field-v2">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          name="mpb_grund_vormiete"
+                          checked={!!formData.mpbGrundVormiete}
+                          onChange={(e) =>
+                            updateFormData("mpbGrundVormiete", e.target.checked)
+                          }
+                        />
+                        <span>Vormiete war höher</span>
+                      </label>
+                    </div>
+
+                    <div className="field-v2" style={{ marginLeft: "25px" }}>
+                      <label>Vormiete (EUR/Monat)</label>
+                      <input
+                        type="number"
+                        className="input"
+                        placeholder="z.B. 1650"
+                        value={formData.mpbVormieteBetrag}
+                        onChange={(e) =>
+                          updateFormData("mpbVormieteBetrag", e.target.value)
+                        }
+                      />
+                    </div>
+
+                    <div className="field-v2">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          name="mpb_grund_modernisierung"
+                          checked={!!formData.mpbGrundModernisierung}
+                          onChange={(e) =>
+                            updateFormData(
+                              "mpbGrundModernisierung",
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span>Modernisierung durchgeführt</span>
+                      </label>
+                    </div>
+
+                    <div className="field-v2" style={{ marginLeft: "25px" }}>
+                      <label>Details zur Modernisierung</label>
+                      <textarea
+                        rows="3"
+                        className="textarea"
+                        placeholder="Beschreibung der Modernisierungsmaßnahmen und Kosten..."
+                        value={formData.mpbModernisierungDetails}
+                        onChange={(e) =>
+                          updateFormData(
+                            "mpbModernisierungDetails",
+                            e.target.value
+                          )
+                        }
+                      />
+                    </div>
+
+                    <div className="field-v2">
+                      <label className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          name="mpb_grund_erstmiete"
+                          checked={!!formData.mpbGrundErstmiete}
+                          onChange={(e) =>
+                            updateFormData(
+                              "mpbGrundErstmiete",
+                              e.target.checked
+                            )
+                          }
+                        />
+                        <span>Erstmiete nach umfassender Modernisierung</span>
+                      </label>
+                    </div>
+
+                    <div className="field-v2" style={{ marginLeft: "25px" }}>
+                      <label>Details zur Erstmiete</label>
+                      <textarea
+                        rows="3"
+                        className="textarea"
+                        placeholder="Datum und Umfang der Modernisierung..."
+                        value={formData.mpbErstmieteDetails}
+                        onChange={(e) =>
+                          updateFormData("mpbErstmieteDetails", e.target.value)
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
 
-            <div className="form-group">
-              <label className="label">
-                Fälligkeit / Mahnsystem{" "}
-                <span className="required">*</span>
+            <div className="field-v2">
+              <label>
+                Fälligkeit / Mahnsystem <span className="required">*</span>
               </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="spätestens 3. Werktag"
-                    checked={
-                      formData.faelligkeit ===
-                      "spätestens 3. Werktag"
-                    }
-                    onChange={(e) =>
-                      updateFormData(
-                        "faelligkeit",
-                        e.target.value
-                      )
-                    }
-                  />
+              <select
+                className="select"
+                value={formData.faelligkeit}
+                onChange={(e) => updateFormData("faelligkeit", e.target.value)}
+              >
+                <option value="">Bitte wählen...</option>
+                <option value="spätestens 3. Werktag des Monats">
                   Spätestens 3. Werktag des Monats
-                </label>
-                <label className="radio-label">
+                </option>
+                <option value="abweichende Regelung">Abweichende Regelung</option>
+              </select>
+            </div>
+
+            <div className="field-v2">
+              <label>Zusatz-BK-Positionen</label>
+              <div className="checkbox-group-v2">
+                {["Objektschutz", "Dachrinnenreinigung", "Beleuchtung allgemeiner Flächen", "Wartung technischer Anlagen", "Gartenpflege", "Hausmeister"].map(
+                  (option) => (
+                    <label key={option} className="checkbox-option-v2">
+                      <input
+                        type="checkbox"
+                        checked={formData.bkZusatzPositionen.includes(option)}
+                        onChange={() =>
+                          toggleArrayValue("bkZusatzPositionen", option)
+                        }
+                      />
+                      <span>{option}</span>
+                    </label>
+                  )
+                )}
+              </div>
+            </div>
+
+            <div className="field-v2">
+              <label>WEG-Verweis / Schlüssel (nur bei ETW)</label>
+              <textarea
+                className="textarea"
+                placeholder="z.B. Teilungserklärung § ...; MEA lt. Mandantendaten"
+                rows="2"
+                value={formData.wegVerweisSchluessel}
+                onChange={(e) =>
+                  updateFormData("wegVerweisSchluessel", e.target.value)
+                }
+              />
+            </div>
+
+            <div className="field-v2">
+              <label>
+                Heiz-/WW als eigener Paragraph? <span className="required">*</span>
+              </label>
+              <div className="radio-group-v2">
+                <label className="radio-option-v2">
                   <input
                     type="radio"
-                    value="abweichend"
-                    checked={
-                      formData.faelligkeit === "abweichend"
-                    }
+                    name="heizww"
+                    value="ja"
+                    checked={formData.heizwwParagraph === "ja"}
                     onChange={(e) =>
-                      updateFormData(
-                        "faelligkeit",
-                        e.target.value
-                      )
+                      updateFormData("heizwwParagraph", e.target.value)
                     }
                   />
-                  Abweichende Regelung
+                  <span>Ja - separater § für Heiz-/Warmwasserkosten</span>
+                </label>
+                <label className="radio-option-v2">
+                  <input
+                    type="radio"
+                    name="heizww"
+                    value="nein"
+                    checked={formData.heizwwParagraph === "nein"}
+                    onChange={(e) =>
+                      updateFormData("heizwwParagraph", e.target.value)
+                    }
+                  />
+                  <span>Nein - zusammen mit BK</span>
                 </label>
               </div>
             </div>
           </div>
         );
+      }
 
       case 3:
         return (
@@ -2441,23 +2784,14 @@ function AnwaltsMaske() {
               <div className="summary-title">
                 Miethöhe & BK
               </div>
-              {formData.indexmiete557b && (
+              {formData.mietanpassung && (
                 <div className="summary-field">
                   <span className="summary-label">
-                    Indexmiete:
+                    Mietanpassung:
                   </span>
                   <span className="summary-value">
-                    {formData.indexmiete557b}
-                  </span>
-                </div>
-              )}
-              {formData.staffelmiete && (
-                <div className="summary-field">
-                  <span className="summary-label">
-                    Staffelmiete:
-                  </span>
-                  <span className="summary-value">
-                    {formData.staffelmiete}
+                    {mietanpassungLabels[formData.mietanpassung] ||
+                      formData.mietanpassung}
                   </span>
                 </div>
               )}
@@ -2468,6 +2802,94 @@ function AnwaltsMaske() {
                   </span>
                   <span className="summary-value">
                     {formData.faelligkeit}
+                  </span>
+                </div>
+              )}
+              {formData.mpbStatus && (
+                <div className="summary-field">
+                  <span className="summary-label">
+                    Mietpreisbremse - Status:
+                  </span>
+                  <span className="summary-value">
+                    {mpbStatusLabels[formData.mpbStatus] ||
+                      formData.mpbStatus}
+                  </span>
+                </div>
+              )}
+              {formData.mpbStatus === "bereits_vermietet" &&
+                formData.mpbVormietverhaeltnis && (
+                  <div className="summary-field">
+                    <span className="summary-label">
+                      Mietpreisbremse - Vormietverhältnis:
+                    </span>
+                    <span className="summary-value">
+                      {mpbVormietLabels[formData.mpbVormietverhaeltnis] ||
+                        formData.mpbVormietverhaeltnis}
+                    </span>
+                  </div>
+                )}
+              {formData.mpbGrenze && (
+                <div className="summary-field">
+                  <span className="summary-label">
+                    Mietpreisbremse - Ergebnis:
+                  </span>
+                  <span className="summary-value">
+                    {mpbGrenzeLabels[formData.mpbGrenze] || formData.mpbGrenze}
+                  </span>
+                </div>
+              )}
+              {formData.mpbGrenze === "nein" && formData.mpbGrundVormiete && (
+                <div className="summary-field">
+                  <span className="summary-label">Begründung: Vormiete</span>
+                  <span className="summary-value">
+                    Vormiete war höher
+                    {formData.mpbVormieteBetrag
+                      ? ` (${formData.mpbVormieteBetrag} EUR/Monat)`
+                      : ""}
+                  </span>
+                </div>
+              )}
+              {formData.mpbGrenze === "nein" && formData.mpbGrundModernisierung && (
+                <div className="summary-field">
+                  <span className="summary-label">Begründung: Modernisierung</span>
+                  <span className="summary-value">
+                    {formData.mpbModernisierungDetails || "Modernisierung durchgeführt"}
+                  </span>
+                </div>
+              )}
+              {formData.mpbGrenze === "nein" && formData.mpbGrundErstmiete && (
+                <div className="summary-field">
+                  <span className="summary-label">Begründung: Erstmiete</span>
+                  <span className="summary-value">
+                    {formData.mpbErstmieteDetails ||
+                      "Erstmiete nach umfassender Modernisierung"}
+                  </span>
+                </div>
+              )}
+              {formData.bkZusatzPositionen?.length > 0 && (
+                <div className="summary-field">
+                  <span className="summary-label">Zusatz-BK-Positionen:</span>
+                  <span className="summary-value">
+                    {formData.bkZusatzPositionen.join(", ")}
+                  </span>
+                </div>
+              )}
+              {formData.wegVerweisSchluessel && (
+                <div className="summary-field">
+                  <span className="summary-label">WEG-Verweis:</span>
+                  <span className="summary-value">
+                    {formData.wegVerweisSchluessel}
+                  </span>
+                </div>
+              )}
+              {formData.heizwwParagraph && (
+                <div className="summary-field">
+                  <span className="summary-label">
+                    Heiz-/WW-Regelung:
+                  </span>
+                  <span className="summary-value">
+                    {heizwwLabels[formData.heizwwParagraph] ||
+                      formData.heizwwParagraph}
                   </span>
                 </div>
               )}
