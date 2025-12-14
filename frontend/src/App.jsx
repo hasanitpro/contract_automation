@@ -1484,6 +1484,43 @@ function AnwaltsMaske() {
     mieterTelefon: "",
   });
 
+  const formatCurrency = (value) => {
+    const num = parseFloat(value || "0");
+    if (Number.isNaN(num)) return "-";
+    return `${num.toFixed(2)} EUR`;
+  };
+
+  const calculateImportedTotalRent = () => {
+    if (!mandantendaten) return "-";
+    const toNumber = (val) => parseFloat(val || "0") || 0;
+    const total =
+      toNumber(mandantendaten.grundmiete) +
+      toNumber(mandantendaten.zuschlagMoebliert) +
+      toNumber(mandantendaten.zuschlagGewerbe) +
+      toNumber(mandantendaten.zuschlagUntervermietung) +
+      toNumber(mandantendaten.vzHeizWW) +
+      toNumber(mandantendaten.vzSonstigeBK) +
+      toNumber(mandantendaten.stellplatzmiete);
+
+    return formatCurrency(total);
+  };
+
+  const renderSummaryField = (label, value, formatter) => {
+    const displayValue =
+      value || value === 0
+        ? formatter
+          ? formatter(value)
+          : value
+        : "-";
+
+    return (
+      <div className="summary-field">
+        <span className="summary-label">{label}</span>
+        <span className="summary-value">{displayValue}</span>
+      </div>
+    );
+  };
+
   const steps = [
     "Mandantendaten",
     "Vertragsgestaltung",
@@ -1752,46 +1789,46 @@ function AnwaltsMaske() {
             </div>
 
             <div className="summary-section">
-              <div className="summary-title">Übersicht</div>
-              {mandantendaten?.rolle && (
-                <div className="summary-field">
-                  <span className="summary-label">
-                    Rolle:
-                  </span>
-                  <span className="summary-value">
-                    {mandantendaten.rolle}
-                  </span>
-                </div>
+              <div className="summary-title">Rolle & Kontakt</div>
+              {renderSummaryField("Rolle", mandantendaten?.rolle)}
+              {renderSummaryField("Name / Firma", mandantendaten?.eigeneName)}
+              {renderSummaryField("E-Mail", mandantendaten?.eigeneEmail)}
+              {renderSummaryField("Telefon", mandantendaten?.eigeneTelefon)}
+            </div>
+
+            <div className="summary-section">
+              <div className="summary-title">Objektangaben</div>
+              {renderSummaryField("Objektadresse", mandantendaten?.objektadresse)}
+              {renderSummaryField(
+                "Wohneinheit",
+                mandantendaten?.wohnungsart || mandantendaten?.wohnungsbezeichnung
               )}
-              {mandantendaten?.eigeneName && (
-                <div className="summary-field">
-                  <span className="summary-label">
-                    Name:
-                  </span>
-                  <span className="summary-value">
-                    {mandantendaten.eigeneName}
-                  </span>
-                </div>
+              {renderSummaryField(
+                "Heizkosten (EUR)",
+                mandantendaten?.vzHeizWW,
+                formatCurrency
               )}
-              {mandantendaten?.objektadresse && (
-                <div className="summary-field">
-                  <span className="summary-label">
-                    Objektadresse:
-                  </span>
-                  <span className="summary-value">
-                    {mandantendaten.objektadresse}
-                  </span>
-                </div>
+            </div>
+
+            <div className="summary-section">
+              <div className="summary-title">Mietzeit</div>
+              {renderSummaryField("Mietbeginn", mandantendaten?.mietbeginn)}
+              {renderSummaryField(
+                "Bezugsfertig seit",
+                mandantendaten?.bezugsfertigSeit
               )}
-              {mandantendaten?.grundmiete && (
-                <div className="summary-field">
-                  <span className="summary-label">
-                    Grundmiete:
-                  </span>
-                  <span className="summary-value">
-                    {mandantendaten.grundmiete} EUR
-                  </span>
-                </div>
+            </div>
+
+            <div className="summary-section">
+              <div className="summary-title">Miete</div>
+              {renderSummaryField(
+                "Grundmiete (EUR)",
+                mandantendaten?.grundmiete,
+                formatCurrency
+              )}
+              {renderSummaryField(
+                "Gesamtmiete (EUR)",
+                mandantendaten && calculateImportedTotalRent()
               )}
             </div>
           </div>
