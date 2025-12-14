@@ -1466,7 +1466,7 @@ function AnwaltsMaske() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     vertragsartFinal: "",
-    ausschluss545BGB: "",
+    kuendigungsverzichtJahre: "0",
     indexmiete557b: "",
     staffelmiete: "",
     faelligkeit: "",
@@ -1884,46 +1884,22 @@ function AnwaltsMaske() {
 
             <div className="form-group">
               <label className="label">
-                § 545 BGB ausschließen{" "}
-                <span className="required">*</span>
+                Kündigungsverzicht (Jahre)
               </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="Ja"
-                    checked={
-                      formData.ausschluss545BGB === "Ja"
-                    }
-                    onChange={(e) =>
-                      updateFormData(
-                        "ausschluss545BGB",
-                        e.target.value
-                      )
-                    }
-                  />
-                  Ja - § 545 BGB wird ausgeschlossen
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="Nein"
-                    checked={
-                      formData.ausschluss545BGB === "Nein"
-                    }
-                    onChange={(e) =>
-                      updateFormData(
-                        "ausschluss545BGB",
-                        e.target.value
-                      )
-                    }
-                  />
-                  Nein - § 545 BGB gilt
-                </label>
-              </div>
+              <input
+                type="number"
+                className="input"
+                min="0"
+                value={formData.kuendigungsverzichtJahre}
+                onChange={(e) =>
+                  updateFormData(
+                    "kuendigungsverzichtJahre",
+                    e.target.value
+                  )
+                }
+              />
               <div className="help-text">
-                Verhindert stillschweigende Verlängerung durch
-                fortgesetzte Nutzung
+                0 = kein Verzicht
               </div>
             </div>
           </div>
@@ -2449,13 +2425,13 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
-              {formData.ausschluss545BGB && (
+              {formData.kuendigungsverzichtJahre && (
                 <div className="summary-field">
                   <span className="summary-label">
-                    § 545 ausgeschlossen:
+                    Kündigungsverzicht (Jahre):
                   </span>
                   <span className="summary-value">
-                    {formData.ausschluss545BGB}
+                    {formData.kuendigungsverzichtJahre}
                   </span>
                 </div>
               )}
