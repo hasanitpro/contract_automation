@@ -1877,7 +1877,7 @@ function AnwaltsMaske() {
                       )
                     }
                   />
-                  Befristet
+                  Befristet (mit § 575-Grund aus Mandantendaten)
                 </label>
               </div>
             </div>
