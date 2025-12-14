@@ -458,7 +458,8 @@ body {
   padding: 12px;
   display: flex;
   gap: 10px;
-  align-items: center
+  align-items: flex-start;
+  flex-direction: column;
 }
 
 .anwalt-step .icon {
@@ -490,6 +491,7 @@ body {
 }
 
 .anwalt-step .title {
+  font-size: 1rem;
   font-weight: 600;
   color: #5b21b6
 }
@@ -565,7 +567,8 @@ body {
   padding: 12px;
   display: flex;
   gap: 10px;
-  align-items: center
+  align-items: flex-start;
+  flex-direction: column;
 }
 
 .stepper-icon {
