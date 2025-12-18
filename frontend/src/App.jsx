@@ -1425,67 +1425,6 @@ function MandantenMaske() {
               </div>
             )}
 
-            <div className="form-group">
-              <label className="label">
-                Bauliche Veränderungen <span className="required">*</span>
-              </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="zustimmung"
-                    checked={formData.bauveraenderung === "zustimmung"}
-                    onChange={(e) =>
-                      updateFormData("bauveraenderung", e.target.value)
-                    }
-                  />
-                  Nur mit vorheriger Zustimmung
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="nicht_erlaubt"
-                    checked={formData.bauveraenderung === "nicht_erlaubt"}
-                    onChange={(e) =>
-                      updateFormData("bauveraenderung", e.target.value)
-                    }
-                  />
-                  Nicht erlaubt (außer Kleinigkeiten)
-                </label>
-              </div>
-              {errors.bauveraenderung && (
-                <div className="error-text">{errors.bauveraenderung}</div>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label className="label">
-                Besichtigungen <span className="required">*</span>
-              </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="terminabstimmung"
-                    checked={formData.besichtigung === "terminabstimmung"}
-                    onChange={(e) => updateFormData("besichtigung", e.target.value)}
-                  />
-                  Mit rechtzeitiger Terminabstimmung
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="kurzfristig"
-                    checked={formData.besichtigung === "kurzfristig"}
-                    onChange={(e) => updateFormData("besichtigung", e.target.value)}
-                  />
-                  Kurzfristig bei berechtigtem Anlass
-                </label>
-              </div>
-              {errors.besichtigung && (
-                <div className="error-text">{errors.besichtigung}</div>
-              )}
-            </div>
           </div>
         );
       case 6:
@@ -1784,8 +1723,6 @@ function AnwaltsMaske() {
     kleinrep_jahr: "",
     endrueckgabe: "",
     haftung536a: "",
-    bauveraenderung: "",
-    besichtigung: "",
     umgebung_laerm: "",
     aufrechnung: "",
     veraeusserung: "",
@@ -1992,15 +1929,6 @@ function AnwaltsMaske() {
       )
         stepErrors.staffelmieteSchedule =
           "Bitte tragen Sie den Staffelmiete-Zeitplan ein.";
-    }
-
-    if (step === 3) {
-      if (!formData.bauveraenderung)
-        stepErrors.bauveraenderung =
-          "Bitte wählen Sie die Regelung zu baulichen Veränderungen.";
-      if (!formData.besichtigung)
-        stepErrors.besichtigung =
-          "Bitte wählen Sie die Besichtigungsregelung.";
     }
 
     if (step === 4) {
@@ -3606,18 +3534,6 @@ function AnwaltsMaske() {
                 <div className="summary-field">
                   <span className="summary-label">Tierhaltung:</span>
                   <span className="summary-value">{formData.tierhaltungTon}</span>
-                </div>
-              )}
-              {formData.bauveraenderung && (
-                <div className="summary-field">
-                  <span className="summary-label">Bauliche Veränderungen:</span>
-                  <span className="summary-value">{formData.bauveraenderung}</span>
-                </div>
-              )}
-              {formData.besichtigung && (
-                <div className="summary-field">
-                  <span className="summary-label">Besichtigung:</span>
-                  <span className="summary-value">{formData.besichtigung}</span>
                 </div>
               )}
             </div>
