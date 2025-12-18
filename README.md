@@ -10,7 +10,9 @@ backend for generating contracts from templates.
 
 ## Backend quick start
 The backend lives in `backend/` and uses Azure Functions with Python 3.11.
-See `backend/README.md` for setup instructions and example requests.
+See `backend/README.md` for setup instructions and example requests. Windows
+users running Azurite locally with PowerShell can follow the dedicated guide in
+[`backend/WINDOWS_POWERSHELL_SETUP.md`](backend/WINDOWS_POWERSHELL_SETUP.md).
 
 ### Local Azure storage and Functions runtime
 
