@@ -4,199 +4,124 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, Iterable, Mapping, Optional, Tuple
+from typing import Any, Dict, Iterable, Optional, Tuple
 from uuid import uuid4
 
 import azure.functions as func
 from azure.core.exceptions import AzureError, ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobServiceClient
 from docx import Document
-from pydantic import BaseModel, Field, ValidationError, validator
+from pydantic import BaseModel, Field, ValidationError
 
+from domain.contract_context import build_contract_context, ContractContextError
+
+
+# ============================================================
+# Storage Resolution (CRITICAL FIX)
+# ============================================================
+
+def _get_storage_connection() -> str:
+    """
+    Resolve storage connection string reliably.
+    Empty env vars are ignored.
+    """
+
+    def clean(value: Optional[str]) -> Optional[str]:
+        if value and value.strip():
+            return value.strip()
+        return None
+
+    # 1. Explicit contract storage
+    conn = clean(os.getenv("ContractsBlobConnection"))
+    if conn:
+        return conn
+
+    # 2. Azure Functions default
+    conn = clean(os.getenv("AzureWebJobsStorage"))
+    if conn:
+        return conn
+
+    # 3. Local Azurite fallback
+    return "UseDevelopmentStorage=true"
+
+
+# ============================================================
+# Request Model
+# ============================================================
 
 class GenerateContractRequest(BaseModel):
-    maskA: Dict[str, Any] = Field(..., description="Data captured from Mask A")
-    maskB: Dict[str, Any] = Field(..., description="Data captured from Mask B")
-    templatePath: Optional[str] = Field(
-        None,
-        description=(
-            "Path to the template. Optional when TemplateBlobPath is configured in the environment."
-        ),
-    )
-    placeholderMapping: Dict[str, str] = Field(
-        ..., description="Mapping of template placeholders to mask fields"
-    )
+    maskA: Dict[str, Any]
+    maskB: Dict[str, Any]
+    templatePath: Optional[str] = None
 
     class Config:
-        extra = "allow"
-
-    @validator("templatePath", pre=True)
-    def _normalize_template_path(cls, value: Optional[str]) -> Optional[str]:
-        if isinstance(value, str) and not value.strip():
-            return None
-        return value
+        extra = "forbid"
 
 
-class PlaceholderResolutionError(ValueError):
-    pass
-
+# ============================================================
+# Errors
+# ============================================================
 
 class TemplateProcessingError(RuntimeError):
     pass
 
 
+# ============================================================
+# Helpers
+# ============================================================
+
 def _error_response(message: str, status_code: int) -> func.HttpResponse:
-    payload = {"message": message}
     return func.HttpResponse(
-        json.dumps(payload, ensure_ascii=False),
+        json.dumps({"message": message}, ensure_ascii=False),
         status_code=status_code,
         mimetype="application/json",
     )
 
 
-def _resolve_placeholder_values(
-    mapping: Mapping[str, str], mask_a: Mapping[str, Any], mask_b: Mapping[str, Any]
-) -> Dict[str, str]:
-    sources: Dict[str, Mapping[str, Any]] = {"maskA": mask_a, "maskB": mask_b}
-    resolved: Dict[str, str] = {}
-
-    for placeholder, source_path in mapping.items():
-        if not isinstance(source_path, str) or not source_path:
-            raise PlaceholderResolutionError(
-                f"Placeholder '{placeholder}' is missing a valid source path."
-            )
-
-        value = None
-        path_parts = source_path.split(".")
-
-        if path_parts[0] in sources:
-            current: Any = sources[path_parts[0]]
-            for part in path_parts[1:]:
-                if isinstance(current, Mapping) and part in current:
-                    current = current[part]
-                else:
-                    raise PlaceholderResolutionError(
-                        f"Placeholder '{placeholder}' could not be resolved from path '{source_path}'."
-                    )
-            value = current
-        else:
-            if source_path in mask_a:
-                value = mask_a[source_path]
-            elif source_path in mask_b:
-                value = mask_b[source_path]
-            else:
-                raise PlaceholderResolutionError(
-                    f"Placeholder '{placeholder}' could not be resolved from path '{source_path}'."
-                )
-
-        if value is None:
-            raise PlaceholderResolutionError(
-                f"Placeholder '{placeholder}' is mapped to an empty value."
-            )
-
-        resolved[placeholder] = str(value)
-
-    return resolved
-
-
-def _get_blob_client(
-    connection_string: str, container_name: str, blob_name: str
-) -> BlobClient:
-    try:
-        service_client = BlobServiceClient.from_connection_string(connection_string)
-        return service_client.get_blob_client(container=container_name, blob=blob_name)
-    except AzureError as exc:
-        raise TemplateProcessingError("Failed to initialise Blob client.") from exc
-
-
-def _load_template(template_path: str, connection_string: str, container: str) -> Tuple[str, bytes]:
+def _load_template(
+    template_path: str, connection_string: str, container: str
+) -> Tuple[str, bytes]:
+    # Local file
     if os.path.exists(template_path):
-        with open(template_path, "rb") as template_file:
-            return os.path.splitext(template_path)[1].lower(), template_file.read()
+        with open(template_path, "rb") as f:
+            return os.path.splitext(template_path)[1].lower(), f.read()
+
+    # Blob
+    if not connection_string:
+        raise TemplateProcessingError("Template storage connection not configured.")
 
     blob_name = template_path.lstrip("/")
     container_name = container
+
     if "/" in blob_name:
         maybe_container, remainder = blob_name.split("/", 1)
         if remainder:
             container_name = maybe_container
             blob_name = remainder
 
-    storage_path = f"{container_name}/{blob_name}"
-
-    if not connection_string:
-        raise TemplateProcessingError(
-            "Template storage connection is not configured for "
-            f"'{storage_path}'. Verify the storage connection/environment values."
-        )
-
     try:
-        service_client = BlobServiceClient.from_connection_string(connection_string)
-    except AzureError as exc:
-        raise TemplateProcessingError(
-            "Failed to initialise template storage connection for "
-            f"'{storage_path}'. Verify the storage connection/environment values."
-        ) from exc
+        service = BlobServiceClient.from_connection_string(connection_string)
+        container_client = service.get_container_client(container_name)
 
-    container_client = service_client.get_container_client(container_name)
-
-    try:
         if not container_client.exists():
-            raise TemplateProcessingError(
-                "Template container '{container}' not found when retrieving "
-                "'{path}'. Verify the storage connection/environment values.".format(
-                    container=container_name, path=storage_path
-                )
-            )
-    except AzureError as exc:
-        raise TemplateProcessingError(
-            "Failed to access template container '{container}' for blob "
-            "'{blob}'. Verify the storage connection/environment values.".format(
-                container=container_name, blob=blob_name
-            )
-        ) from exc
+            raise TemplateProcessingError(f"Template container '{container_name}' not found.")
 
-    blob_client = container_client.get_blob_client(blob_name)
+        blob_client = container_client.get_blob_client(blob_name)
 
-    try:
         if not blob_client.exists():
-            raise TemplateProcessingError(
-                "Template blob '{blob}' was not found in container "
-                "'{container}'. Verify the blob path and storage "
-                "connection/environment values.".format(
-                    container=container_name, blob=blob_name
-                )
-            )
+            raise TemplateProcessingError(f"Template blob '{blob_name}' not found.")
 
-        template_bytes = blob_client.download_blob().readall()
-    except ResourceNotFoundError as exc:
-        raise TemplateProcessingError(
-            "Template '{path}' was not found in storage. Verify the blob path "
-            "and storage connection/environment values.".format(path=storage_path)
-        ) from exc
+        data = blob_client.download_blob().readall()
+
     except AzureError as exc:
-        raise TemplateProcessingError(
-            "Failed to download template from storage path '{path}'. Verify the "
-            "storage connection/environment values.".format(path=storage_path)
-        ) from exc
+        raise TemplateProcessingError("Failed to load template.") from exc
 
-    extension = os.path.splitext(template_path)[1].lower()
-    return extension, template_bytes
+    return os.path.splitext(template_path)[1].lower(), data
 
 
-def _replace_placeholders_in_text(content: str, placeholders: Mapping[str, str]) -> Tuple[str, Iterable[str]]:
-    missing: list[str] = []
-    replaced_text = content
-    for key, value in placeholders.items():
-        marker = f"[{key}]"
-        if marker not in replaced_text:
-            missing.append(key)
-            continue
-        replaced_text = replaced_text.replace(marker, value)
-    return replaced_text, missing
-
-
-def _apply_placeholders_to_runs(runs: Iterable[Any], placeholders: Mapping[str, str], used: set[str]) -> None:
+def _apply_placeholders_to_runs(
+    runs: Iterable[Any], placeholders: Dict[str, str], used: set[str]
+) -> None:
     for run in runs:
         for key, value in placeholders.items():
             marker = f"[{key}]"
@@ -205,68 +130,81 @@ def _apply_placeholders_to_runs(runs: Iterable[Any], placeholders: Mapping[str, 
                 used.add(key)
 
 
-def _render_docx_template(template_bytes: bytes, placeholders: Mapping[str, str]) -> bytes:
+def _render_docx_template(template_bytes: bytes, context: Dict[str, str]) -> bytes:
     document = Document(io.BytesIO(template_bytes))
-    used_placeholders: set[str] = set()
+    used: set[str] = set()
 
-    for paragraph in document.paragraphs:
-        _apply_placeholders_to_runs(paragraph.runs, placeholders, used_placeholders)
+    for p in document.paragraphs:
+        _apply_placeholders_to_runs(p.runs, context, used)
 
     for table in document.tables:
         for row in table.rows:
             for cell in row.cells:
-                for paragraph in cell.paragraphs:
-                    _apply_placeholders_to_runs(
-                        paragraph.runs, placeholders, used_placeholders
-                    )
+                for p in cell.paragraphs:
+                    _apply_placeholders_to_runs(p.runs, context, used)
 
-    missing = set(placeholders.keys()) - used_placeholders
+    missing = set(context.keys()) - used
     if missing:
-        raise PlaceholderResolutionError(
-            "Missing placeholders in template: " + ", ".join(sorted(missing))
+        raise TemplateProcessingError(
+            "Unreplaced placeholders in template: " + ", ".join(sorted(missing))
         )
 
-    output = io.BytesIO()
-    document.save(output)
-    return output.getvalue()
+    out = io.BytesIO()
+    document.save(out)
+    return out.getvalue()
 
 
-def _render_html_template(html_bytes: bytes, placeholders: Mapping[str, str]) -> bytes:
-    html_content = html_bytes.decode("utf-8", errors="ignore")
-    replaced_content, missing = _replace_placeholders_in_text(html_content, placeholders)
-    if missing:
-        raise PlaceholderResolutionError(
-            "Missing placeholders in template: " + ", ".join(sorted(missing))
+def _render_html_template(html_bytes: bytes, context: Dict[str, str]) -> bytes:
+    html = html_bytes.decode("utf-8", errors="ignore")
+
+    for key, value in context.items():
+        html = html.replace(f"[{key}]", value)
+
+    unresolved = re.findall(r"\[[A-Z0-9_]+\]", html)
+    if unresolved:
+        raise TemplateProcessingError(
+            "Unreplaced placeholders in template: " + ", ".join(sorted(set(unresolved)))
         )
 
-    text_content = re.sub(r"<[^>]+>", "", replaced_content)
+    text = re.sub(r"<[^>]+>", "", html)
+
     document = Document()
-    for block in filter(None, (part.strip() for part in re.split(r"\n\s*\n", text_content))):
+    for block in filter(None, (b.strip() for b in text.split("\n\n"))):
         document.add_paragraph(block)
 
-    output = io.BytesIO()
-    document.save(output)
-    return output.getvalue()
+    out = io.BytesIO()
+    document.save(out)
+    return out.getvalue()
 
 
-def _upload_contract(
-    contract_bytes: bytes, connection_string: str, container: str
-) -> Tuple[str, str]:
+def _upload_contract(contract_bytes: bytes, container: str) -> Tuple[str, str]:
     try:
-        blob_client = _get_blob_client(
-            connection_string, container, f"contract-{datetime.utcnow():%Y%m%d%H%M%S}-{uuid4()}.docx"
+        conn = _get_storage_connection()
+        service = BlobServiceClient.from_connection_string(conn)
+        container_client = service.get_container_client(container)
+
+        if not container_client.exists():
+            container_client.create_container()
+
+        blob_name = f"contract-{datetime.utcnow():%Y%m%d%H%M%S}-{uuid4()}.docx"
+        blob_client = container_client.get_blob_client(blob_name)
+
+        blob_client.upload_blob(
+            contract_bytes,
+            overwrite=True,
+            content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         )
-        blob_client.upload_blob(contract_bytes, overwrite=True)
+
+        return blob_name, blob_client.url
+
     except AzureError as exc:
-        raise TemplateProcessingError("Failed to upload generated contract.") from exc
+        logging.exception("Blob upload failed")
+        raise TemplateProcessingError(f"Failed to upload generated contract: {exc}") from exc
 
-    sas_token = os.getenv("ContractsBlobSasToken", "").lstrip("?")
-    download_url = blob_client.url
-    if sas_token:
-        download_url = f"{download_url}?{sas_token}"
 
-    return blob_client.blob_name, download_url
-
+# ============================================================
+# Azure Function Entry Point
+# ============================================================
 
 async def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
@@ -274,73 +212,55 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
     except ValueError:
         return _error_response("Invalid JSON body.", 400)
 
-    if not isinstance(body, dict):
-        return _error_response("Request body must be a JSON object.", 400)
-
     try:
         payload = GenerateContractRequest(**body)
     except ValidationError as exc:
-        logging.warning("Validation failed for contract request: %s", exc)
-        return func.HttpResponse(
-            exc.json(), status_code=400, mimetype="application/json"
-        )
+        return func.HttpResponse(exc.json(), status_code=400, mimetype="application/json")
 
-    template_default_path = os.getenv("TemplateBlobPath", "").strip()
-    template_connection = os.getenv("TemplateBlobConnection", "") or os.getenv(
-        "ContractsBlobConnection", ""
+    # Build contract context
+    try:
+        context = build_contract_context(payload.maskA, payload.maskB)
+    except ContractContextError as exc:
+        return _error_response(str(exc), 400)
+
+    # Load template
+    template_path = payload.templatePath or os.getenv("TemplateBlobPath", "").strip()
+    if not template_path:
+        return _error_response("Template path not provided.", 400)
+
+    template_connection = (
+        os.getenv("TemplateBlobConnection")
+        or os.getenv("ContractsBlobConnection")
+        or os.getenv("AzureWebJobsStorage")
     )
     template_container = os.getenv("TemplatesContainer", "templates")
-    contracts_container = os.getenv("ContractsContainer", "contracts")
-    contracts_connection = os.getenv("ContractsBlobConnection", "")
-
-    template_path = payload.templatePath or template_default_path
-    if not template_path:
-        return _error_response(
-            "Template path must be provided or configured via TemplateBlobPath.",
-            400,
-        )
-
-    try:
-        placeholders = _resolve_placeholder_values(
-            payload.placeholderMapping, payload.maskA, payload.maskB
-        )
-    except PlaceholderResolutionError as exc:
-        return _error_response(str(exc), 400)
 
     try:
         extension, template_bytes = _load_template(
             template_path, template_connection, template_container
         )
     except TemplateProcessingError as exc:
-        logging.exception("Template load failed: %s", exc)
         return _error_response(str(exc), 400)
 
+    # Render contract
     try:
         if extension == ".docx":
-            contract_bytes = _render_docx_template(template_bytes, placeholders)
+            contract_bytes = _render_docx_template(template_bytes, context)
         else:
-            contract_bytes = _render_html_template(template_bytes, placeholders)
-    except PlaceholderResolutionError as exc:
-        logging.warning("Placeholder processing failed: %s", exc)
+            contract_bytes = _render_html_template(template_bytes, context)
+    except TemplateProcessingError as exc:
         return _error_response(str(exc), 400)
-    except Exception as exc:  # pylint: disable=broad-except
-        logging.exception("Failed to render contract: %s", exc)
-        return _error_response("Failed to render contract.", 500)
 
-    if not contracts_connection:
-        return _error_response("Contracts storage connection is not configured.", 500)
+    # Upload
+    contracts_container = os.getenv("ContractsContainer", "contracts")
 
     try:
-        _, download_url = _upload_contract(
-            contract_bytes, contracts_connection, contracts_container
-        )
+        _, download_url = _upload_contract(contract_bytes, contracts_container)
     except TemplateProcessingError as exc:
-        logging.exception("Contract upload failed: %s", exc)
         return _error_response(str(exc), 500)
 
-    response_payload = {"downloadUrl": download_url}
     return func.HttpResponse(
-        json.dumps(response_payload, ensure_ascii=False),
+        json.dumps({"downloadUrl": download_url}, ensure_ascii=False),
         status_code=200,
         mimetype="application/json",
     )
