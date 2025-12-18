@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contract - {{ effective_date or "Date TBD" }}</title>
+</head>
+<body>
+    <h1>Contract Agreement</h1>
+    <p>Effective Date: {{ effective_date or "To be determined" }}</p>
+
+    <h2>Parties</h2>
+    <ul>
+        {% for party in parties %}
+        <li>{{ party.name }}{% if party.role %} ({{ party.role }}){% endif %}</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Terms</h2>
+    <ul>
+        {% for key, value in terms.items() %}
+        <li><strong>{{ key }}:</strong> {{ value }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
