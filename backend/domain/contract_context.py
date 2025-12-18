@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import Dict, Any, List
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 import re
 MPB_THRESHOLD = datetime.strptime("2014-10-01", "%Y-%m-%d").date()
 
@@ -19,32 +19,7 @@ def build_contract_context(mask_a: Dict[str, Any], mask_b: Dict[str, Any]) -> Di
     if rolle not in ("Vermieter", "Mieter"):
         raise ContractContextError("A1.rolle must be 'Vermieter' or 'Mieter'")
 
-    if rolle == "Vermieter":
-        context["LANDLORD_NAME"] = mask_a.get("eigene_name", "")
-        context["LANDLORD_ADDRESS"] = mask_a.get("eigene_anschrift", "")
-        context["TENANT_NAME"] = mask_a.get("gegenpartei_name", "")
-        context["TENANT_ADDRESS"] = mask_a.get("gegenpartei_anschrift", "")
-    else:
-        context["LANDLORD_NAME"] = mask_a.get("gegenpartei_name", "")
-        context["LANDLORD_ADDRESS"] = mask_a.get("gegenpartei_anschrift", "")
-        context["TENANT_NAME"] = mask_a.get("eigene_name", "")
-        context["TENANT_ADDRESS"] = mask_a.get("eigene_anschrift", "")
-
-    # Representation (optional)
-    if mask_a.get("wird_vertreten") == "Ja":
-        rep = mask_a.get("vertreten_durch", "")
-        if not rep:
-            raise ContractContextError("Representative selected but no name provided")
-
-        if rolle == "Vermieter":
-            context["LANDLORD_REPRESENTATIVE"] = rep
-            context["TENANT_REPRESENTATIVE"] = ""
-        else:
-            context["TENANT_REPRESENTATIVE"] = rep
-            context["LANDLORD_REPRESENTATIVE"] = ""
-    else:
-        context["LANDLORD_REPRESENTATIVE"] = ""
-        context["TENANT_REPRESENTATIVE"] = ""
+    context.update(_format_party_fields(rolle, mask_a))
 
     context["VAT_ID"] = mask_a.get("ust_id", "")
     context["TAX_NUMBER"] = mask_a.get("steuernummer", "")
@@ -79,14 +54,14 @@ def build_contract_context(mask_a: Dict[str, Any], mask_b: Dict[str, Any]) -> Di
     # -------------------------------------------------
     # A4 – RENTAL START
     # -------------------------------------------------
-    mietbeginn = _parse_date(mask_a.get("mietbeginn"))
+    mietbeginn = _parse_date(mask_a.get("mietbeginn"), "A4.mietbeginn")
     context["MIETBEGINN"] = _format_date(mietbeginn)
 
     # -------------------------------------------------
     # A5 – RENT
     # -------------------------------------------------
-    grundmiete = Decimal(str(mask_a.get("grundmiete", 0) or 0))
-    context["BETRAG"] = _format_decimal(grundmiete)
+    grundmiete = _format_monetary(mask_a.get("grundmiete"), "A5.grundmiete")
+    context["BETRAG"] = grundmiete
 
     context["IBAN"] = mask_a.get("eigene_iban", "")
 
@@ -126,10 +101,48 @@ def build_contract_context(mask_a: Dict[str, Any], mask_b: Dict[str, Any]) -> Di
 # Helper functions
 # ==========================
 
-def _parse_date(value: str) -> date:
+def _clean_text(value: Any) -> str:
+    return str(value or "").strip()
+
+
+def _format_party_fields(rolle: str, mask_a: Dict[str, Any]) -> Dict[str, str]:
+    if rolle == "Vermieter":
+        landlord_name = _clean_text(mask_a.get("eigene_name"))
+        landlord_address = _clean_text(mask_a.get("eigene_anschrift"))
+        tenant_name = _clean_text(mask_a.get("gegenpartei_name"))
+        tenant_address = _clean_text(mask_a.get("gegenpartei_anschrift"))
+    else:
+        landlord_name = _clean_text(mask_a.get("gegenpartei_name"))
+        landlord_address = _clean_text(mask_a.get("gegenpartei_anschrift"))
+        tenant_name = _clean_text(mask_a.get("eigene_name"))
+        tenant_address = _clean_text(mask_a.get("eigene_anschrift"))
+
+    representative_selected = mask_a.get("wird_vertreten") == "Ja"
+    representative_name = _clean_text(mask_a.get("vertreten_durch"))
+
+    if representative_selected and not representative_name:
+        raise ContractContextError("Representative selected but no name provided")
+
+    landlord_rep = representative_name if representative_selected and rolle == "Vermieter" else ""
+    tenant_rep = representative_name if representative_selected and rolle == "Mieter" else ""
+
+    return {
+        "LANDLORD_NAME": landlord_name,
+        "LANDLORD_ADDRESS": landlord_address,
+        "TENANT_NAME": tenant_name,
+        "TENANT_ADDRESS": tenant_address,
+        "LANDLORD_REPRESENTATIVE": landlord_rep,
+        "TENANT_REPRESENTATIVE": tenant_rep,
+    }
+
+
+def _parse_date(value: str, field_name: str) -> date:
     if not value:
-        raise ContractContextError("Required date missing")
-    return datetime.strptime(value, "%Y-%m-%d").date()
+        raise ContractContextError(f"{field_name} is required")
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except (TypeError, ValueError) as exc:
+        raise ContractContextError(f"{field_name} must use YYYY-MM-DD format") from exc
 
 
 def _format_date(value: date) -> str:
@@ -140,6 +153,21 @@ def _format_decimal(value) -> str:
     if value is None or value == "":
         return ""
     return f"{Decimal(value):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
+def _format_monetary(value: Any, field_name: str, allow_zero: bool = True) -> str:
+    if value in (None, ""):
+        raise ContractContextError(f"{field_name} is required")
+
+    try:
+        decimal_value = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ContractContextError(f"{field_name} must be a valid number") from exc
+
+    if not allow_zero and decimal_value == 0:
+        raise ContractContextError(f"{field_name} must be greater than zero")
+
+    return _format_decimal(decimal_value)
 
 
 def _map_zustand_text(zustand: str) -> str:
@@ -196,6 +224,29 @@ def _truthy(value: Any) -> bool:
     return False
 
 
+def _resolve_mpb_justifications(candidates: List[tuple[str, str]]) -> str:
+    if not candidates:
+        raise ContractContextError(
+            "MPB over limit selected (B2.mpb_grenze='Nein, über Grenze') but no justification was provided "
+            "(mpb_vormiete / mpb_modern / mpb_erstmiete)."
+        )
+
+    priority = ["mpb_vormiete", "mpb_modern", "mpb_erstmiete"]
+    ordered = sorted(candidates, key=lambda item: priority.index(item[0]))
+
+    if len(candidates) > 1:
+        provided = ", ".join(name for name, _ in candidates)
+        priority_text = " > ".join(priority)
+        raise ContractContextError(
+            "Multiple MPB justifications provided ({provided}). Only one justification is allowed; "
+            f"if several are set the priority is {priority_text}.".format(
+                provided=provided
+            )
+        )
+
+    return ordered[0][1]
+
+
 def _build_mpb_clause(mask_a: Dict[str, Any], mask_b: Dict[str, Any]) -> str:
     """
     Returns the full MPB clause text or an empty string if no clause should be included.
@@ -214,7 +265,7 @@ def _build_mpb_clause(mask_a: Dict[str, Any], mask_b: Dict[str, Any]) -> str:
         # MPB logic depends on this field; fail safely.
         raise ContractContextError("A3.bezugsfertig is required for Mietpreisbremse (MPB) logic")
 
-    bezugsfertig_date = _parse_date(bezugsfertig_raw)
+    bezugsfertig_date = _parse_date(bezugsfertig_raw, "A3.bezugsfertig")
 
     # -------------------------
     # STAGE 1: Date Check
@@ -303,44 +354,43 @@ def _build_mpb_clause(mask_a: Dict[str, Any], mask_b: Dict[str, Any]) -> str:
     # -------------------------
     # JUSTIFICATIONS (any/all)
     # -------------------------
-    justification_lines: list[str] = []
+    justification_candidates: list[tuple[str, str]] = []
 
     if _truthy(mask_b.get("mpb_vormiete")):
-        amount = mask_b.get("mpb_vormiete_betrag")
-        if amount in (None, "", 0, "0"):
-            raise ContractContextError("B2.mpb_vormiete is checked but mpb_vormiete_betrag is missing/zero")
-        justification_lines.append(
-            f"Die Vormiete gemäß § 556e Abs. 1 BGB betrug {_format_decimal(amount)} Euro (Nettokaltmiete)."
+        amount = _format_monetary(
+            mask_b.get("mpb_vormiete_betrag"), "B2.mpb_vormiete_betrag", allow_zero=False
+        )
+        justification_candidates.append(
+            (
+                "mpb_vormiete",
+                f"Die Vormiete gemäß § 556e Abs. 1 BGB betrug {amount} Euro (Nettokaltmiete).",
+            )
         )
 
     if _truthy(mask_b.get("mpb_modern")):
-        justification_lines.append(
+        details = (mask_b.get("mpb_modern_text") or "").strip()
+        text = (
             "In den letzten drei Jahren vor Beginn dieses Mietverhältnisses wurde eine Modernisierung "
             "im Sinne des § 555b BGB durchgeführt, für die eine Modernisierungsmieterhöhung zulässig gewesen "
             "wäre (§ 556e Abs. 2 BGB)."
         )
-        details = (mask_b.get("mpb_modern_text") or "").strip()
         if details:
-            justification_lines.append(f"Details: {details}")
+            text = f"{text}\nDetails: {details}"
+        justification_candidates.append(("mpb_modern", text))
 
     if _truthy(mask_b.get("mpb_erstmiete")):
-        justification_lines.append(
+        details = (mask_b.get("mpb_erstmiete_text") or "").strip()
+        text = (
             "Bei diesem Mietvertragsabschluss handelt es sich um den ersten nach umfassender "
             "Modernisierung (§ 556f BGB)."
         )
-        details = (mask_b.get("mpb_erstmiete_text") or "").strip()
         if details:
-            justification_lines.append(f"Details: {details}")
+            text = f"{text}\nDetails: {details}"
+        justification_candidates.append(("mpb_erstmiete", text))
 
-    if not justification_lines:
-        # If over limit, at least one justification must be chosen.
-        raise ContractContextError(
-            "MPB over limit selected (B2.mpb_grenze='Nein, über Grenze') but no justification was provided "
-            "(mpb_vormiete / mpb_modern / mpb_erstmiete)."
-        )
+    justification_text = _resolve_mpb_justifications(justification_candidates)
 
-    # Format justifications as a numbered list
-    numbered = [f"{i}. {line}" for i, line in enumerate(justification_lines, start=1)]
-    parts.append("\n".join(numbered))
+    # Format justification as numbered list
+    parts.append("\n".join([f"1. {justification_text}"]))
 
     return " ".join(parts)
