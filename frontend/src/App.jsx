@@ -43,6 +43,45 @@ const normalizeMaskAKeys = (data = {}) => {
   return normalized;
 };
 
+const normalizeMaskBKeys = (data = {}) => {
+  const legacyToSnakeMap = {
+    vertragsartFinal: "vertragsart_final",
+    kuendigungsverzichtJahre: "kuendigungsverzicht",
+    indexmiete557b: "indexmiete_557b",
+    staffelmieteSchedule: "staffelmiete_schedule",
+    mpbStatus: "mpb_status",
+    mpbVormietverhaeltnis: "mpb_vormiet",
+    mpbGrenze: "mpb_grenze",
+    mpbGrundVormiete: "mpb_grund_vormiete",
+    mpbVormieteBetrag: "mpb_vormiete_betrag",
+    mpbGrundModernisierung: "mpb_grund_modernisierung",
+    mpbModernisierungDetails: "mpb_modernisierung_details",
+    mpbGrundErstmiete: "mpb_grund_erstmiete",
+    mpbErstmieteDetails: "mpb_erstmiete_details",
+    bkZusatzPositionen: "bk_zusatz_positionen",
+    wegVerweisSchluessel: "weg_verweis_schluessel",
+    heizwwParagraph: "heizww_paragraph",
+    untervermietungKlausel: "untervermietung_klausel",
+    tierhaltungTon: "tierhaltung_ton",
+    srModell: "sr_modell",
+    kleinrepJeVorgang: "kleinrep_je_vorgang",
+    energieausweisEinbindung: "energieausweis_einbindung",
+    dsgvoBeiblatt: "dsgvo_beiblatt",
+    mieterEmail: "mieter_email",
+    mieterTelefon: "mieter_telefon",
+  };
+
+  const normalized = { ...data };
+
+  Object.entries(legacyToSnakeMap).forEach(([legacyKey, snakeKey]) => {
+    if (normalized[legacyKey] !== undefined && normalized[snakeKey] === undefined) {
+      normalized[snakeKey] = normalized[legacyKey];
+    }
+  });
+
+  return normalized;
+};
+
 
 /**********************
  * MANDANTENMASKE (MASK A)
@@ -1728,47 +1767,58 @@ function AnwaltsMaske() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    vertragsartFinal: "",
-    kuendigungsverzichtJahre: "0",
-    indexmiete557b: "",
+    ro_rolle: "",
+    ro_name: "",
+    ro_email: "",
+    ro_telefon: "",
+    ro_objektadresse: "",
+    ro_wohneinheit: "",
+    ro_bezugsfertig: "",
+    ro_mietbeginn: "",
+    ro_grundmiete: "",
+    ro_gesamtmiete: "",
+    ro_vz_heizung: "",
+    vertragsart_final: "",
+    kuendigungsverzicht: "0",
+    indexmiete_557b: "",
     staffelmiete: "",
-    staffelmieteSchedule: "",
+    staffelmiete_schedule: "",
     faelligkeit: "",
     mietanpassung: "",
-    mpbStatus: "",
-    mpbVormietverhaeltnis: "",
-    mpbGrenze: "",
-    mpbGrundVormiete: false,
-    mpbVormieteBetrag: "",
-    mpbGrundModernisierung: false,
-    mpbModernisierungDetails: "",
-    mpbGrundErstmiete: false,
-    mpbErstmieteDetails: "",
-    bkZusatzPositionen: [],
-    wegVerweisSchluessel: "",
-    heizwwParagraph: "",
-    untervermietungKlausel: "",
-    tierhaltungTon: "",
-    srModell: "",
+    mpb_status: "",
+    mpb_vormiet: "",
+    mpb_grenze: "",
+    mpb_grund_vormiete: false,
+    mpb_vormiete_betrag: "",
+    mpb_grund_modernisierung: false,
+    mpb_modernisierung_details: "",
+    mpb_grund_erstmiete: false,
+    mpb_erstmiete_details: "",
+    bk_zusatz_positionen: [],
+    weg_verweis_schluessel: "",
+    heizww_paragraph: "",
+    untervermietung_klausel: "",
+    tierhaltung_ton: "",
+    sr_modell: "",
     sr_zuschuss: "",
     sr_zuschuss_betrag: "",
     sr_mietfrei: "",
     sr_mietfrei_monate: "",
-    kleinrepJeVorgang: "",
+    kleinrep_je_vorgang: "",
     kleinrep_jahr: "",
     endrueckgabe: "",
-    haftung536a: "",
+    haftung_536a: "",
     umgebung_laerm: "",
     aufrechnung: "",
     veraeusserung: "",
-    energieausweisEinbindung: "",
-    dsgvoBeiblatt: "",
+    energieausweis_einbindung: "",
+    dsgvo_beiblatt: "",
     anlagen: [],
     bearbeiter: "",
     freigabe: "",
     // optional tenant contact (only in lawyer view)
-    mieterEmail: "",
-    mieterTelefon: "",
+    mieter_email: "",
+    mieter_telefon: "",
   });
 
   const formatCurrency = (value) => {
@@ -1777,17 +1827,17 @@ function AnwaltsMaske() {
     return `${num.toFixed(2)} EUR`;
   };
 
-  const calculateImportedTotalRent = () => {
-    if (!mandantendaten) return "-";
+  const calculateImportedTotalRent = (maskAData = mandantendaten) => {
+    if (!maskAData) return "-";
     const toNumber = (val) => parseFloat(val || "0") || 0;
     const total =
-      toNumber(mandantendaten.grundmiete) +
-      toNumber(mandantendaten.zuschlag_moeblierung) +
-      toNumber(mandantendaten.zuschlag_teilgewerbe) +
-      toNumber(mandantendaten.zuschlag_unterverm) +
-      toNumber(mandantendaten.vz_heizung) +
-      toNumber(mandantendaten.vz_bk) +
-      toNumber(mandantendaten.stellplatzmiete);
+      toNumber(maskAData.grundmiete) +
+      toNumber(maskAData.zuschlag_moeblierung) +
+      toNumber(maskAData.zuschlag_teilgewerbe) +
+      toNumber(maskAData.zuschlag_unterverm) +
+      toNumber(maskAData.vz_heizung) +
+      toNumber(maskAData.vz_bk) +
+      toNumber(maskAData.stellplatzmiete);
 
     return formatCurrency(total);
   };
@@ -1829,19 +1879,21 @@ function AnwaltsMaske() {
   const enforceExclusivity = (data) => {
     const next = { ...data };
     if (next.mietanpassung === "index") {
-      next.indexmiete557b = "Ja";
+      next.indexmiete_557b = "Ja";
       next.staffelmiete = "Nein";
+      next.staffelmiete_schedule = "";
     } else if (next.mietanpassung === "staffel") {
-      next.indexmiete557b = "Nein";
+      next.indexmiete_557b = "Nein";
       next.staffelmiete = "Ja";
     } else if (next.mietanpassung === "normalfall") {
-      next.indexmiete557b = "Nein";
+      next.indexmiete_557b = "Nein";
       next.staffelmiete = "Nein";
+      next.staffelmiete_schedule = "";
     } else if (!next.mietanpassung) {
-      if (next.indexmiete557b === "Ja") next.mietanpassung = "index";
+      if (next.indexmiete_557b === "Ja") next.mietanpassung = "index";
       else if (next.staffelmiete === "Ja") next.mietanpassung = "staffel";
       else if (
-        next.indexmiete557b === "Nein" &&
+        next.indexmiete_557b === "Nein" &&
         next.staffelmiete === "Nein"
       )
         next.mietanpassung = "normalfall";
@@ -1853,15 +1905,15 @@ function AnwaltsMaske() {
     const role = maskAData.rolle;
     if (role === "Vermieter") {
       return {
-        email: maskAData.gegenpartei_email || fallback.mieterEmail || "",
-        phone: maskAData.gegenpartei_telefon || fallback.mieterTelefon || "",
+        email: maskAData.gegenpartei_email || fallback.mieter_email || "",
+        phone: maskAData.gegenpartei_telefon || fallback.mieter_telefon || "",
       };
     }
 
     if (role === "Mieter") {
       return {
-        email: maskAData.eigene_email || fallback.mieterEmail || "",
-        phone: maskAData.eigene_telefon || fallback.mieterTelefon || "",
+        email: maskAData.eigene_email || fallback.mieter_email || "",
+        phone: maskAData.eigene_telefon || fallback.mieter_telefon || "",
       };
     }
 
@@ -1869,28 +1921,56 @@ function AnwaltsMaske() {
       email:
         maskAData.gegenpartei_email ||
         maskAData.eigene_email ||
-        fallback.mieterEmail ||
+        fallback.mieter_email ||
         "",
       phone:
         maskAData.gegenpartei_telefon ||
         maskAData.eigene_telefon ||
-        fallback.mieterTelefon ||
+        fallback.mieter_telefon ||
         "",
+    };
+  };
+
+  const deriveReadOnlyFields = (maskAData = {}, fallback = {}) => {
+    const totalRent = calculateImportedTotalRent(maskAData);
+    return {
+      ro_rolle: maskAData.rolle || fallback.ro_rolle || "",
+      ro_name: maskAData.eigene_name || fallback.ro_name || "",
+      ro_email: maskAData.eigene_email || fallback.ro_email || "",
+      ro_telefon: maskAData.eigene_telefon || fallback.ro_telefon || "",
+      ro_objektadresse:
+        maskAData.objektadresse || fallback.ro_objektadresse || "",
+      ro_wohneinheit:
+        maskAData.wohnungsart ||
+        maskAData.wohnung_bez ||
+        fallback.ro_wohneinheit ||
+        "",
+      ro_bezugsfertig: maskAData.bezugsfertig || fallback.ro_bezugsfertig || "",
+      ro_mietbeginn: maskAData.mietbeginn || fallback.ro_mietbeginn || "",
+      ro_grundmiete: maskAData.grundmiete || fallback.ro_grundmiete || "",
+      ro_gesamtmiete:
+        totalRent !== "-" ? totalRent : fallback.ro_gesamtmiete || "",
+      ro_vz_heizung: maskAData.vz_heizung || fallback.ro_vz_heizung || "",
     };
   };
 
   const applyPrefill = (maskAData, importedMaskB = {}) => {
     setFormData((prev) => {
+      const normalizedMaskB = normalizeMaskBKeys(importedMaskB);
       const contact = deriveContact(maskAData, prev);
+      const readonlyFields = deriveReadOnlyFields(maskAData, prev);
       const merged = {
         ...prev,
-        ...importedMaskB,
-        vertragsartFinal:
-          importedMaskB.vertragsartFinal ||
+        ...normalizedMaskB,
+        ...readonlyFields,
+        vertragsart_final:
+          normalizedMaskB.vertragsart_final ||
           maskAData.vertragsart ||
-          prev.vertragsartFinal,
-        mieterEmail: contact.email,
-        mieterTelefon: contact.phone,
+          prev.vertragsart_final,
+        kuendigungsverzicht:
+          normalizedMaskB.kuendigungsverzicht ?? prev.kuendigungsverzicht,
+        mieter_email: contact.email,
+        mieter_telefon: contact.phone,
       };
       return enforceExclusivity(merged);
     });
@@ -1958,8 +2038,8 @@ function AnwaltsMaske() {
     const stepErrors = {};
 
     if (step === 1) {
-      if (!formData.vertragsartFinal)
-        stepErrors.vertragsartFinal = "Bitte wählen Sie die Vertragsart.";
+      if (!formData.vertragsart_final)
+        stepErrors.vertragsart_final = "Bitte wählen Sie die Vertragsart.";
     }
 
     if (step === 2) {
@@ -1967,26 +2047,26 @@ function AnwaltsMaske() {
         stepErrors.mietanpassung = "Bitte wählen Sie die Mietanpassung.";
       if (
         formData.mietanpassung === "staffel" &&
-        !formData.staffelmieteSchedule
+        !formData.staffelmiete_schedule
       )
-        stepErrors.staffelmieteSchedule =
+        stepErrors.staffelmiete_schedule =
           "Bitte tragen Sie den Staffelmiete-Zeitplan ein.";
     }
 
     if (step === 3) {
-      if (!formData.untervermietungKlausel)
-        stepErrors.untervermietungKlausel =
+      if (!formData.untervermietung_klausel)
+        stepErrors.untervermietung_klausel =
           "Bitte wählen Sie eine Regelung zur Untervermietung.";
-      if (!formData.tierhaltungTon)
-        stepErrors.tierhaltungTon =
+      if (!formData.tierhaltung_ton)
+        stepErrors.tierhaltung_ton =
           "Bitte wählen Sie den Klauselton zur Tierhaltung.";
     }
 
     if (step === 4) {
-      if (!formData.srModell)
-        stepErrors.srModell = "Bitte wählen Sie ein SR-Modell.";
-      if (!formData.kleinrepJeVorgang)
-        stepErrors.kleinrepJeVorgang =
+      if (!formData.sr_modell)
+        stepErrors.sr_modell = "Bitte wählen Sie ein SR-Modell.";
+      if (!formData.kleinrep_je_vorgang)
+        stepErrors.kleinrep_je_vorgang =
           "Bitte wählen Sie die Kleinreparatur-Grenze je Vorgang.";
       if (!formData.kleinrep_jahr)
         stepErrors.kleinrep_jahr =
@@ -2007,8 +2087,8 @@ function AnwaltsMaske() {
     }
 
     if (step === 5) {
-      if (!formData.haftung536a)
-        stepErrors.haftung536a = "Bitte wählen Sie die Haftungsregel.";
+      if (!formData.haftung_536a)
+        stepErrors.haftung_536a = "Bitte wählen Sie die Haftungsregel.";
       if (!formData.umgebung_laerm)
         stepErrors.umgebung_laerm = "Bitte wählen Sie die Option zu Umgebungslärm.";
       if (!formData.aufrechnung)
@@ -2018,11 +2098,11 @@ function AnwaltsMaske() {
     }
 
     if (step === 6) {
-      if (!formData.energieausweisEinbindung)
-        stepErrors.energieausweisEinbindung =
+      if (!formData.energieausweis_einbindung)
+        stepErrors.energieausweis_einbindung =
           "Bitte wählen Sie die Option zum Energieausweis.";
-      if (!formData.dsgvoBeiblatt)
-        stepErrors.dsgvoBeiblatt = "Bitte wählen Sie die DSGVO-Angabe.";
+      if (!formData.dsgvo_beiblatt)
+        stepErrors.dsgvo_beiblatt = "Bitte wählen Sie die DSGVO-Angabe.";
       if (!formData.bearbeiter)
         stepErrors.bearbeiter = "Bitte tragen Sie den Bearbeiter ein.";
       if (!formData.freigabe)
@@ -2130,7 +2210,7 @@ function AnwaltsMaske() {
       staffel: "Staffelmiete",
     };
 
-    const mpbStatusLabels = {
+    const mpb_statusLabels = {
       neubau: "Neubau (nie zuvor vermietet)",
       bereits_vermietet: "Bereits vermietet",
     };
@@ -2140,7 +2220,7 @@ function AnwaltsMaske() {
       nach_juni_2015: "NACH 01.06.2015",
     };
 
-    const mpbGrenzeLabels = {
+    const mpb_grenzeLabels = {
       ja: "Ja, unter der Grenze",
       nein: "Nein, über der Grenze",
     };
@@ -2252,32 +2332,32 @@ function AnwaltsMaske() {
 
             <div className="summary-section">
               <div className="summary-title">Rolle & Kontakt</div>
-              {renderSummaryField("Rolle", mandantendaten?.rolle)}
-              {renderSummaryField("Name / Firma", mandantendaten?.eigene_name)}
-              {renderSummaryField("E-Mail", mandantendaten?.eigene_email)}
-              {renderSummaryField("Telefon", mandantendaten?.eigene_telefon)}
+              {renderSummaryField("Rolle", formData.ro_rolle)}
+              {renderSummaryField("Name / Firma", formData.ro_name)}
+              {renderSummaryField("E-Mail", formData.ro_email)}
+              {renderSummaryField("Telefon", formData.ro_telefon)}
             </div>
 
             <div className="summary-section">
               <div className="summary-title">Objektangaben</div>
-              {renderSummaryField("Objektadresse", mandantendaten?.objektadresse)}
+              {renderSummaryField("Objektadresse", formData.ro_objektadresse)}
               {renderSummaryField(
                 "Wohneinheit",
-                mandantendaten?.wohnungsart || mandantendaten?.wohnung_bez
+                formData.ro_wohneinheit
               )}
               {renderSummaryField(
                 "Heizkosten (EUR)",
-                mandantendaten?.vz_heizung,
+                formData.ro_vz_heizung,
                 formatCurrency
               )}
             </div>
 
             <div className="summary-section">
               <div className="summary-title">Mietzeit</div>
-              {renderSummaryField("Mietbeginn", mandantendaten?.mietbeginn)}
+              {renderSummaryField("Mietbeginn", formData.ro_mietbeginn)}
               {renderSummaryField(
                 "Bezugsfertig seit",
-                mandantendaten?.bezugsfertig
+                formData.ro_bezugsfertig
               )}
             </div>
 
@@ -2285,12 +2365,12 @@ function AnwaltsMaske() {
               <div className="summary-title">Miete</div>
               {renderSummaryField(
                 "Grundmiete (EUR)",
-                mandantendaten?.grundmiete,
+                formData.ro_grundmiete,
                 formatCurrency
               )}
               {renderSummaryField(
                 "Gesamtmiete (EUR)",
-                mandantendaten && calculateImportedTotalRent()
+                formData.ro_gesamtmiete || calculateImportedTotalRent()
               )}
             </div>
           </div>
@@ -2314,11 +2394,11 @@ function AnwaltsMaske() {
                     type="radio"
                     value="unbefristet"
                     checked={
-                      formData.vertragsartFinal === "unbefristet"
+                      formData.vertragsart_final === "unbefristet"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "vertragsartFinal",
+                        "vertragsart_final",
                         e.target.value
                       )
                     }
@@ -2330,11 +2410,11 @@ function AnwaltsMaske() {
                     type="radio"
                     value="befristet"
                     checked={
-                      formData.vertragsartFinal === "befristet"
+                      formData.vertragsart_final === "befristet"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "vertragsartFinal",
+                        "vertragsart_final",
                         e.target.value
                       )
                     }
@@ -2342,8 +2422,8 @@ function AnwaltsMaske() {
                   Befristet (mit § 575-Grund aus Mandantendaten)
                 </label>
               </div>
-              {errors.vertragsartFinal && (
-                <div className="error-text">{errors.vertragsartFinal}</div>
+              {errors.vertragsart_final && (
+                <div className="error-text">{errors.vertragsart_final}</div>
               )}
             </div>
 
@@ -2355,10 +2435,10 @@ function AnwaltsMaske() {
                 type="number"
                 className="input"
                 min="0"
-                value={formData.kuendigungsverzichtJahre}
+                value={formData.kuendigungsverzicht}
                 onChange={(e) =>
                   updateFormData(
-                    "kuendigungsverzichtJahre",
+                    "kuendigungsverzicht",
                     e.target.value
                   )
                 }
@@ -2373,17 +2453,18 @@ function AnwaltsMaske() {
       case 2: {
         const showMietpreisbremse = (() => {
           if (
-            formData.mpbStatus ||
-            formData.mpbVormietverhaeltnis ||
-            formData.mpbGrenze ||
-            formData.mpbGrundVormiete ||
-            formData.mpbGrundModernisierung ||
-            formData.mpbGrundErstmiete
+            formData.mpb_status ||
+            formData.mpb_vormiet ||
+            formData.mpb_grenze ||
+            formData.mpb_grund_vormiete ||
+            formData.mpb_grund_modernisierung ||
+            formData.mpb_grund_erstmiete
           ) {
             return true;
           }
 
-          const bezugsfertigRaw = mandantendaten?.bezugsfertig;
+          const bezugsfertigRaw =
+            formData.ro_bezugsfertig || mandantendaten?.bezugsfertig;
           if (!bezugsfertigRaw) return false;
 
           // Normalize the date so the Mietpreisbremse hint appears reliably,
@@ -2411,8 +2492,8 @@ function AnwaltsMaske() {
           return parsedDate <= cutoff;
         })();
 
-        const showMpbStufe2 = formData.mpbStatus === "bereits_vermietet";
-        const showMpbStufe4 = formData.mpbGrenze === "nein";
+        const showMpbStufe2 = formData.mpb_status === "bereits_vermietet";
+        const showMpbStufe4 = formData.mpb_grenze === "nein";
 
         return (
           <div className="form-section-v2">
@@ -2474,16 +2555,16 @@ function AnwaltsMaske() {
                   Staffelmiete - Zeitplan <span className="required">*</span>
                 </label>
                 <textarea
-                  className={`textarea ${errors.staffelmieteSchedule ? "error" : ""}`}
+                  className={`textarea ${errors.staffelmiete_schedule ? "error" : ""}`}
                   rows="3"
                   placeholder="z.B. ab 01.01.2025 +50 EUR; ab 01.01.2026 +50 EUR"
-                  value={formData.staffelmieteSchedule}
+                  value={formData.staffelmiete_schedule}
                   onChange={(e) =>
-                    updateFormData("staffelmieteSchedule", e.target.value)
+                    updateFormData("staffelmiete_schedule", e.target.value)
                   }
                 ></textarea>
-                {errors.staffelmieteSchedule && (
-                  <div className="error-text">{errors.staffelmieteSchedule}</div>
+                {errors.staffelmiete_schedule && (
+                  <div className="error-text">{errors.staffelmiete_schedule}</div>
                 )}
               </div>
             )}
@@ -2522,9 +2603,9 @@ function AnwaltsMaske() {
                         type="radio"
                         name="mpb_status"
                         value="neubau"
-                        checked={formData.mpbStatus === "neubau"}
+                        checked={formData.mpb_status === "neubau"}
                         onChange={(e) =>
-                          updateFormData("mpbStatus", e.target.value)
+                          updateFormData("mpb_status", e.target.value)
                         }
                       />
                       <span>Neubau (nie zuvor vermietet)</span>
@@ -2535,10 +2616,10 @@ function AnwaltsMaske() {
                         name="mpb_status"
                         value="bereits_vermietet"
                         checked={
-                          formData.mpbStatus === "bereits_vermietet"
+                          formData.mpb_status === "bereits_vermietet"
                         }
                         onChange={(e) =>
-                          updateFormData("mpbStatus", e.target.value)
+                          updateFormData("mpb_status", e.target.value)
                         }
                       />
                       <span>Bereits vermietet</span>
@@ -2566,12 +2647,12 @@ function AnwaltsMaske() {
                             name="mpb_vormiet"
                             value="vor_juni_2015"
                             checked={
-                              formData.mpbVormietverhaeltnis ===
+                              formData.mpb_vormiet ===
                               "vor_juni_2015"
                             }
                             onChange={(e) =>
                               updateFormData(
-                                "mpbVormietverhaeltnis",
+                                "mpb_vormiet",
                                 e.target.value
                               )
                             }
@@ -2584,12 +2665,12 @@ function AnwaltsMaske() {
                             name="mpb_vormiet"
                             value="nach_juni_2015"
                             checked={
-                              formData.mpbVormietverhaeltnis ===
+                              formData.mpb_vormiet ===
                               "nach_juni_2015"
                             }
                             onChange={(e) =>
                               updateFormData(
-                                "mpbVormietverhaeltnis",
+                                "mpb_vormiet",
                                 e.target.value
                               )
                             }
@@ -2620,9 +2701,9 @@ function AnwaltsMaske() {
                           type="radio"
                           name="mpb_grenze"
                           value="ja"
-                          checked={formData.mpbGrenze === "ja"}
+                          checked={formData.mpb_grenze === "ja"}
                           onChange={(e) =>
-                            updateFormData("mpbGrenze", e.target.value)
+                            updateFormData("mpb_grenze", e.target.value)
                           }
                         />
                         <span>
@@ -2634,9 +2715,9 @@ function AnwaltsMaske() {
                           type="radio"
                           name="mpb_grenze"
                           value="nein"
-                          checked={formData.mpbGrenze === "nein"}
+                          checked={formData.mpb_grenze === "nein"}
                           onChange={(e) =>
-                            updateFormData("mpbGrenze", e.target.value)
+                            updateFormData("mpb_grenze", e.target.value)
                           }
                         />
                         <span>Nein, über der Grenze</span>
@@ -2663,9 +2744,9 @@ function AnwaltsMaske() {
                         <input
                           type="checkbox"
                           name="mpb_grund_vormiete"
-                          checked={!!formData.mpbGrundVormiete}
+                          checked={!!formData.mpb_grund_vormiete}
                           onChange={(e) =>
-                            updateFormData("mpbGrundVormiete", e.target.checked)
+                            updateFormData("mpb_grund_vormiete", e.target.checked)
                           }
                         />
                         <span>Vormiete war höher</span>
@@ -2678,9 +2759,9 @@ function AnwaltsMaske() {
                         type="number"
                         className="input"
                         placeholder="z.B. 1650"
-                        value={formData.mpbVormieteBetrag}
+                        value={formData.mpb_vormiete_betrag}
                         onChange={(e) =>
-                          updateFormData("mpbVormieteBetrag", e.target.value)
+                          updateFormData("mpb_vormiete_betrag", e.target.value)
                         }
                       />
                     </div>
@@ -2690,10 +2771,10 @@ function AnwaltsMaske() {
                         <input
                           type="checkbox"
                           name="mpb_grund_modernisierung"
-                          checked={!!formData.mpbGrundModernisierung}
+                          checked={!!formData.mpb_grund_modernisierung}
                           onChange={(e) =>
                             updateFormData(
-                              "mpbGrundModernisierung",
+                              "mpb_grund_modernisierung",
                               e.target.checked
                             )
                           }
@@ -2708,10 +2789,10 @@ function AnwaltsMaske() {
                         rows="3"
                         className="textarea"
                         placeholder="Beschreibung der Modernisierungsmaßnahmen und Kosten..."
-                        value={formData.mpbModernisierungDetails}
+                        value={formData.mpb_modernisierung_details}
                         onChange={(e) =>
                           updateFormData(
-                            "mpbModernisierungDetails",
+                            "mpb_modernisierung_details",
                             e.target.value
                           )
                         }
@@ -2723,10 +2804,10 @@ function AnwaltsMaske() {
                         <input
                           type="checkbox"
                           name="mpb_grund_erstmiete"
-                          checked={!!formData.mpbGrundErstmiete}
+                          checked={!!formData.mpb_grund_erstmiete}
                           onChange={(e) =>
                             updateFormData(
-                              "mpbGrundErstmiete",
+                              "mpb_grund_erstmiete",
                               e.target.checked
                             )
                           }
@@ -2741,9 +2822,9 @@ function AnwaltsMaske() {
                         rows="3"
                         className="textarea"
                         placeholder="Datum und Umfang der Modernisierung..."
-                        value={formData.mpbErstmieteDetails}
+                        value={formData.mpb_erstmiete_details}
                         onChange={(e) =>
-                          updateFormData("mpbErstmieteDetails", e.target.value)
+                          updateFormData("mpb_erstmiete_details", e.target.value)
                         }
                       />
                     </div>
@@ -2777,9 +2858,9 @@ function AnwaltsMaske() {
                     <label key={option} className="checkbox-option-v2">
                       <input
                         type="checkbox"
-                        checked={formData.bkZusatzPositionen.includes(option)}
+                        checked={formData.bk_zusatz_positionen.includes(option)}
                         onChange={() =>
-                          toggleArrayValue("bkZusatzPositionen", option)
+                          toggleArrayValue("bk_zusatz_positionen", option)
                         }
                       />
                       <span>{option}</span>
@@ -2795,9 +2876,9 @@ function AnwaltsMaske() {
                 className="textarea"
                 placeholder="z.B. Teilungserklärung § ...; MEA lt. Mandantendaten"
                 rows="2"
-                value={formData.wegVerweisSchluessel}
+                value={formData.weg_verweis_schluessel}
                 onChange={(e) =>
-                  updateFormData("wegVerweisSchluessel", e.target.value)
+                  updateFormData("weg_verweis_schluessel", e.target.value)
                 }
               />
             </div>
@@ -2812,9 +2893,9 @@ function AnwaltsMaske() {
                     type="radio"
                     name="heizww"
                     value="ja"
-                    checked={formData.heizwwParagraph === "ja"}
+                    checked={formData.heizww_paragraph === "ja"}
                     onChange={(e) =>
-                      updateFormData("heizwwParagraph", e.target.value)
+                      updateFormData("heizww_paragraph", e.target.value)
                     }
                   />
                   <span>Ja - separater § für Heiz-/Warmwasserkosten</span>
@@ -2824,9 +2905,9 @@ function AnwaltsMaske() {
                     type="radio"
                     name="heizww"
                     value="nein"
-                    checked={formData.heizwwParagraph === "nein"}
+                    checked={formData.heizww_paragraph === "nein"}
                     onChange={(e) =>
-                      updateFormData("heizwwParagraph", e.target.value)
+                      updateFormData("heizww_paragraph", e.target.value)
                     }
                   />
                   <span>Nein - zusammen mit BK</span>
@@ -2850,11 +2931,11 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className={`select ${errors.untervermietungKlausel ? "error" : ""}`}
-                value={formData.untervermietungKlausel}
+                className={`select ${errors.untervermietung_klausel ? "error" : ""}`}
+                value={formData.untervermietung_klausel}
                 onChange={(e) =>
                   updateFormData(
-                    "untervermietungKlausel",
+                    "untervermietung_klausel",
                     e.target.value
                   )
                 }
@@ -2870,8 +2951,8 @@ function AnwaltsMaske() {
                   Individuelle Regelung
                 </option>
               </select>
-              {errors.untervermietungKlausel && (
-                <div className="error-text">{errors.untervermietungKlausel}</div>
+              {errors.untervermietung_klausel && (
+                <div className="error-text">{errors.untervermietung_klausel}</div>
               )}
             </div>
 
@@ -2881,11 +2962,11 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className={`select ${errors.tierhaltungTon ? "error" : ""}`}
-                value={formData.tierhaltungTon}
+                className={`select ${errors.tierhaltung_ton ? "error" : ""}`}
+                value={formData.tierhaltung_ton}
                 onChange={(e) =>
                   updateFormData(
-                    "tierhaltungTon",
+                    "tierhaltung_ton",
                     e.target.value
                   )
                 }
@@ -2902,8 +2983,8 @@ function AnwaltsMaske() {
                   Individuell
                 </option>
               </select>
-              {errors.tierhaltungTon && (
-                <div className="error-text">{errors.tierhaltungTon}</div>
+              {errors.tierhaltung_ton && (
+                <div className="error-text">{errors.tierhaltung_ton}</div>
               )}
             </div>
           </div>
@@ -2934,12 +3015,12 @@ function AnwaltsMaske() {
                     type="radio"
                     value="Pauschal (ohne Fristen)"
                     checked={
-                      formData.srModell ===
+                      formData.sr_modell ===
                       "Pauschal (ohne Fristen)"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "srModell",
+                        "sr_modell",
                         e.target.value
                       )
                     }
@@ -2951,12 +3032,12 @@ function AnwaltsMaske() {
                     type="radio"
                     value="Fristenplan 5/7/10"
                     checked={
-                      formData.srModell ===
+                      formData.sr_modell ===
                       "Fristenplan 5/7/10"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "srModell",
+                        "sr_modell",
                         e.target.value
                       )
                     }
@@ -2964,8 +3045,8 @@ function AnwaltsMaske() {
                   Fristenplan 5/7/10 Jahre (Risiko!)
                 </label>
               </div>
-              {errors.srModell && (
-                <div className="error-text">{errors.srModell}</div>
+              {errors.sr_modell && (
+                <div className="error-text">{errors.sr_modell}</div>
               )}
             </div>
 
@@ -3070,10 +3151,10 @@ function AnwaltsMaske() {
               </label>
               <select
                 className="select"
-                value={formData.kleinrepJeVorgang}
+                value={formData.kleinrep_je_vorgang}
                 onChange={(e) =>
                   updateFormData(
-                    "kleinrepJeVorgang",
+                    "kleinrep_je_vorgang",
                     e.target.value
                   )
                 }
@@ -3083,8 +3164,8 @@ function AnwaltsMaske() {
                 <option value="110">110 EUR</option>
                 <option value="120">120 EUR</option>
               </select>
-              {errors.kleinrepJeVorgang && (
-                <div className="error-text">{errors.kleinrepJeVorgang}</div>
+              {errors.kleinrep_je_vorgang && (
+                <div className="error-text">{errors.kleinrep_je_vorgang}</div>
               )}
             </div>
 
@@ -3141,11 +3222,11 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className={`select ${errors.haftung536a ? "error" : ""}`}
-                value={formData.haftung536a}
+                className={`select ${errors.haftung_536a ? "error" : ""}`}
+                value={formData.haftung_536a}
                 onChange={(e) =>
                   updateFormData(
-                    "haftung536a",
+                    "haftung_536a",
                     e.target.value
                   )
                 }
@@ -3162,8 +3243,8 @@ function AnwaltsMaske() {
                 Individuell
               </option>
               </select>
-              {errors.haftung536a && (
-                <div className="error-text">{errors.haftung536a}</div>
+              {errors.haftung_536a && (
+                <div className="error-text">{errors.haftung_536a}</div>
               )}
             </div>
 
@@ -3277,12 +3358,12 @@ function AnwaltsMaske() {
                     type="radio"
                     value="informativ"
                     checked={
-                      formData.energieausweisEinbindung ===
+                      formData.energieausweis_einbindung ===
                       "informativ"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "energieausweisEinbindung",
+                        "energieausweis_einbindung",
                         e.target.value
                       )
                     }
@@ -3294,12 +3375,12 @@ function AnwaltsMaske() {
                     type="radio"
                     value="Kenntnisnahme verpflichtend"
                     checked={
-                      formData.energieausweisEinbindung ===
+                      formData.energieausweis_einbindung ===
                       "Kenntnisnahme verpflichtend"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "energieausweisEinbindung",
+                        "energieausweis_einbindung",
                         e.target.value
                       )
                     }
@@ -3307,9 +3388,9 @@ function AnwaltsMaske() {
                   Kenntnisnahme verpflichtend
                 </label>
               </div>
-              {errors.energieausweisEinbindung && (
+              {errors.energieausweis_einbindung && (
                 <div className="error-text">
-                  {errors.energieausweisEinbindung}
+                  {errors.energieausweis_einbindung}
                 </div>
               )}
             </div>
@@ -3324,10 +3405,10 @@ function AnwaltsMaske() {
                   <input
                     type="radio"
                     value="Ja"
-                    checked={formData.dsgvoBeiblatt === "Ja"}
+                    checked={formData.dsgvo_beiblatt === "Ja"}
                     onChange={(e) =>
                       updateFormData(
-                        "dsgvoBeiblatt",
+                        "dsgvo_beiblatt",
                         e.target.value
                       )
                     }
@@ -3338,10 +3419,10 @@ function AnwaltsMaske() {
                   <input
                     type="radio"
                     value="Nein"
-                    checked={formData.dsgvoBeiblatt === "Nein"}
+                    checked={formData.dsgvo_beiblatt === "Nein"}
                     onChange={(e) =>
                       updateFormData(
-                        "dsgvoBeiblatt",
+                        "dsgvo_beiblatt",
                         e.target.value
                       )
                     }
@@ -3349,8 +3430,8 @@ function AnwaltsMaske() {
                   Nein
                 </label>
               </div>
-              {errors.dsgvoBeiblatt && (
-                <div className="error-text">{errors.dsgvoBeiblatt}</div>
+              {errors.dsgvo_beiblatt && (
+                <div className="error-text">{errors.dsgvo_beiblatt}</div>
               )}
             </div>
 
@@ -3424,10 +3505,10 @@ function AnwaltsMaske() {
                 type="text"
                 className="input"
                 placeholder="Mieter-E-Mail (optional)"
-                value={formData.mieterEmail}
+                value={formData.mieter_email}
                 onChange={(e) =>
                   updateFormData(
-                    "mieterEmail",
+                    "mieter_email",
                     e.target.value
                   )
                 }
@@ -3437,10 +3518,10 @@ function AnwaltsMaske() {
                 type="text"
                 className="input"
                 placeholder="Mieter-Telefon (optional)"
-                value={formData.mieterTelefon}
+                value={formData.mieter_telefon}
                 onChange={(e) =>
                   updateFormData(
-                    "mieterTelefon",
+                    "mieter_telefon",
                     e.target.value
                   )
                 }
@@ -3464,23 +3545,23 @@ function AnwaltsMaske() {
               <div className="summary-title">
                 Vertragsgestaltung
               </div>
-              {formData.vertragsartFinal && (
+              {formData.vertragsart_final && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Vertragsart:
                   </span>
                   <span className="summary-value">
-                    {formData.vertragsartFinal}
+                    {formData.vertragsart_final}
                   </span>
                 </div>
               )}
-              {formData.kuendigungsverzichtJahre && (
+              {formData.kuendigungsverzicht && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Kündigungsverzicht (Jahre):
                   </span>
                   <span className="summary-value">
-                    {formData.kuendigungsverzichtJahre}
+                    {formData.kuendigungsverzicht}
                   </span>
                 </div>
               )}
@@ -3512,99 +3593,99 @@ function AnwaltsMaske() {
                 </div>
               )}
               {formData.mietanpassung === "staffel" &&
-                formData.staffelmieteSchedule && (
+                formData.staffelmiete_schedule && (
                   <div className="summary-field">
                     <span className="summary-label">Staffelmietplan:</span>
                     <span className="summary-value">
-                      {formData.staffelmieteSchedule}
+                      {formData.staffelmiete_schedule}
                     </span>
                   </div>
                 )}
-              {formData.mpbStatus && (
+              {formData.mpb_status && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Mietpreisbremse - Status:
                   </span>
                   <span className="summary-value">
-                    {mpbStatusLabels[formData.mpbStatus] ||
-                      formData.mpbStatus}
+                    {mpb_statusLabels[formData.mpb_status] ||
+                      formData.mpb_status}
                   </span>
                 </div>
               )}
-              {formData.mpbStatus === "bereits_vermietet" &&
-                formData.mpbVormietverhaeltnis && (
+              {formData.mpb_status === "bereits_vermietet" &&
+                formData.mpb_vormiet && (
                   <div className="summary-field">
                     <span className="summary-label">
                       Mietpreisbremse - Vormietverhältnis:
                     </span>
                     <span className="summary-value">
-                      {mpbVormietLabels[formData.mpbVormietverhaeltnis] ||
-                        formData.mpbVormietverhaeltnis}
+                      {mpbVormietLabels[formData.mpb_vormiet] ||
+                        formData.mpb_vormiet}
                     </span>
                   </div>
                 )}
-              {formData.mpbGrenze && (
+              {formData.mpb_grenze && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Mietpreisbremse - Ergebnis:
                   </span>
                   <span className="summary-value">
-                    {mpbGrenzeLabels[formData.mpbGrenze] || formData.mpbGrenze}
+                    {mpb_grenzeLabels[formData.mpb_grenze] || formData.mpb_grenze}
                   </span>
                 </div>
               )}
-              {formData.mpbGrenze === "nein" && formData.mpbGrundVormiete && (
+              {formData.mpb_grenze === "nein" && formData.mpb_grund_vormiete && (
                 <div className="summary-field">
                   <span className="summary-label">Begründung: Vormiete</span>
                   <span className="summary-value">
                     Vormiete war höher
-                    {formData.mpbVormieteBetrag
-                      ? ` (${formData.mpbVormieteBetrag} EUR/Monat)`
+                    {formData.mpb_vormiete_betrag
+                      ? ` (${formData.mpb_vormiete_betrag} EUR/Monat)`
                       : ""}
                   </span>
                 </div>
               )}
-              {formData.mpbGrenze === "nein" && formData.mpbGrundModernisierung && (
+              {formData.mpb_grenze === "nein" && formData.mpb_grund_modernisierung && (
                 <div className="summary-field">
                   <span className="summary-label">Begründung: Modernisierung</span>
                   <span className="summary-value">
-                    {formData.mpbModernisierungDetails || "Modernisierung durchgeführt"}
+                    {formData.mpb_modernisierung_details || "Modernisierung durchgeführt"}
                   </span>
                 </div>
               )}
-              {formData.mpbGrenze === "nein" && formData.mpbGrundErstmiete && (
+              {formData.mpb_grenze === "nein" && formData.mpb_grund_erstmiete && (
                 <div className="summary-field">
                   <span className="summary-label">Begründung: Erstmiete</span>
                   <span className="summary-value">
-                    {formData.mpbErstmieteDetails ||
+                    {formData.mpb_erstmiete_details ||
                       "Erstmiete nach umfassender Modernisierung"}
                   </span>
                 </div>
               )}
-              {formData.bkZusatzPositionen?.length > 0 && (
+              {formData.bk_zusatz_positionen?.length > 0 && (
                 <div className="summary-field">
                   <span className="summary-label">Zusatz-BK-Positionen:</span>
                   <span className="summary-value">
-                    {formData.bkZusatzPositionen.join(", ")}
+                    {formData.bk_zusatz_positionen.join(", ")}
                   </span>
                 </div>
               )}
-              {formData.wegVerweisSchluessel && (
+              {formData.weg_verweis_schluessel && (
                 <div className="summary-field">
                   <span className="summary-label">WEG-Verweis:</span>
                   <span className="summary-value">
-                    {formData.wegVerweisSchluessel}
+                    {formData.weg_verweis_schluessel}
                   </span>
                 </div>
               )}
-              {formData.heizwwParagraph && (
+              {formData.heizww_paragraph && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Heiz-/WW-Regelung:
                   </span>
                   <span className="summary-value">
-                    {heizwwLabels[formData.heizwwParagraph] ||
-                      formData.heizwwParagraph}
+                    {heizwwLabels[formData.heizww_paragraph] ||
+                      formData.heizww_paragraph}
                   </span>
                 </div>
               )}
@@ -3612,18 +3693,18 @@ function AnwaltsMaske() {
 
             <div className="summary-section">
               <div className="summary-title">Nutzung & Zutritt</div>
-              {formData.untervermietungKlausel && (
+              {formData.untervermietung_klausel && (
                 <div className="summary-field">
                   <span className="summary-label">Untervermietung:</span>
                   <span className="summary-value">
-                    {formData.untervermietungKlausel}
+                    {formData.untervermietung_klausel}
                   </span>
                 </div>
               )}
-              {formData.tierhaltungTon && (
+              {formData.tierhaltung_ton && (
                 <div className="summary-field">
                   <span className="summary-label">Tierhaltung:</span>
-                  <span className="summary-value">{formData.tierhaltungTon}</span>
+                  <span className="summary-value">{formData.tierhaltung_ton}</span>
                 </div>
               )}
             </div>
@@ -3632,23 +3713,23 @@ function AnwaltsMaske() {
               <div className="summary-title">
                 Instandhaltung
               </div>
-              {formData.srModell && (
+              {formData.sr_modell && (
                 <div className="summary-field">
                   <span className="summary-label">
                     SR-Modell:
                   </span>
                   <span className="summary-value">
-                    {formData.srModell}
+                    {formData.sr_modell}
                   </span>
                 </div>
               )}
-              {formData.kleinrepJeVorgang && (
+              {formData.kleinrep_je_vorgang && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Kleinrep. je Vorgang:
                   </span>
                   <span className="summary-value">
-                    {formData.kleinrepJeVorgang} EUR
+                    {formData.kleinrep_je_vorgang} EUR
                   </span>
                 </div>
               )}
@@ -3690,10 +3771,10 @@ function AnwaltsMaske() {
 
             <div className="summary-section">
               <div className="summary-title">Haftung & Veräußerung</div>
-              {formData.haftung536a && (
+              {formData.haftung_536a && (
                 <div className="summary-field">
                   <span className="summary-label">Haftung §536a:</span>
-                  <span className="summary-value">{formData.haftung536a}</span>
+                  <span className="summary-value">{formData.haftung_536a}</span>
                 </div>
               )}
               {formData.umgebung_laerm && (
