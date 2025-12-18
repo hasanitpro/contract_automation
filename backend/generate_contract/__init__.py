@@ -3,51 +3,94 @@ import json
 import logging
 import os
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, Dict, Iterable, Optional, Tuple
 from uuid import uuid4
 
 import azure.functions as func
-from azure.core.exceptions import AzureError, ResourceNotFoundError
+from azure.core.exceptions import AzureError
 from azure.storage.blob import BlobClient, BlobServiceClient
 from docx import Document
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ValidationError
 
 from domain.contract_context import build_contract_context, ContractContextError
+
+
+# ============================================================
+# Errors
+# ============================================================
+
+
+class TemplateProcessingError(RuntimeError):
+    pass
 
 
 # ============================================================
 # Storage Resolution (CRITICAL FIX)
 # ============================================================
 
-def _get_storage_connection() -> str:
-    """
-    Resolve storage connection string reliably.
-    Empty env vars are ignored.
-    """
 
-    def clean(value: Optional[str]) -> Optional[str]:
-        if value and value.strip():
-            return value.strip()
-        return None
+def _clean(value: Optional[str]) -> Optional[str]:
+    if value and value.strip():
+        return value.strip()
+    return None
 
-    # 1. Explicit contract storage
-    conn = clean(os.getenv("ContractsBlobConnection"))
-    if conn:
-        return conn
 
-    # 2. Azure Functions default
-    conn = clean(os.getenv("AzureWebJobsStorage"))
-    if conn:
-        return conn
+def _resolve_connection(*env_vars: str, default: str = "UseDevelopmentStorage=true") -> str:
+    for var in env_vars:
+        candidate = _clean(os.getenv(var))
+        if candidate:
+            return candidate
+    return default
 
-    # 3. Local Azurite fallback
-    return "UseDevelopmentStorage=true"
+
+@dataclass
+class StorageSettings:
+    template_path: str
+    template_container: str
+    template_connection: str
+    contracts_container: str
+    contracts_connection: str
+
+    @classmethod
+    def from_env(cls, template_path_override: Optional[str]) -> "StorageSettings":
+        template_path = _clean(template_path_override) or _clean(
+            os.getenv("TemplateBlobPath")
+        )
+
+        if not template_path:
+            raise TemplateProcessingError(
+                "Template path not provided. Supply 'templatePath' in the request or set the TemplateBlobPath environment variable."
+            )
+
+        return cls(
+            template_path=template_path,
+            template_container=_clean(os.getenv("TemplatesContainer")) or "templates",
+            template_connection=_resolve_connection(
+                "TemplateBlobConnection", "ContractsBlobConnection", "AzureWebJobsStorage"
+            ),
+            contracts_container=_clean(os.getenv("ContractsContainer")) or "contracts",
+            contracts_connection=_resolve_connection(
+                "ContractsBlobConnection", "AzureWebJobsStorage"
+            ),
+        )
+
+    @staticmethod
+    def template_hint() -> str:
+        return (
+            "Check TemplateBlobConnection, ContractsBlobConnection, AzureWebJobsStorage, and TemplatesContainer environment values."
+        )
+
+    @staticmethod
+    def contract_hint() -> str:
+        return "Verify ContractsBlobConnection, AzureWebJobsStorage, and ContractsContainer environment values."
 
 
 # ============================================================
 # Request Model
 # ============================================================
+
 
 class GenerateContractRequest(BaseModel):
     maskA: Dict[str, Any]
@@ -59,16 +102,9 @@ class GenerateContractRequest(BaseModel):
 
 
 # ============================================================
-# Errors
-# ============================================================
-
-class TemplateProcessingError(RuntimeError):
-    pass
-
-
-# ============================================================
 # Helpers
 # ============================================================
+
 
 def _error_response(message: str, status_code: int) -> func.HttpResponse:
     return func.HttpResponse(
@@ -86,9 +122,10 @@ def _load_template(
         with open(template_path, "rb") as f:
             return os.path.splitext(template_path)[1].lower(), f.read()
 
-    # Blob
     if not connection_string:
-        raise TemplateProcessingError("Template storage connection not configured.")
+        raise TemplateProcessingError(
+            f"Template storage connection not configured for '{template_path}'. {StorageSettings.template_hint()}"
+        )
 
     blob_name = template_path.lstrip("/")
     container_name = container
@@ -104,17 +141,25 @@ def _load_template(
         container_client = service.get_container_client(container_name)
 
         if not container_client.exists():
-            raise TemplateProcessingError(f"Template container '{container_name}' not found.")
+            raise TemplateProcessingError(
+                f"Template container '{container_name}' not found while attempting to read '{template_path}'. {StorageSettings.template_hint()}"
+            )
 
         blob_client = container_client.get_blob_client(blob_name)
 
         if not blob_client.exists():
-            raise TemplateProcessingError(f"Template blob '{blob_name}' not found.")
+            raise TemplateProcessingError(
+                f"Template blob '{blob_name}' not found in container '{container_name}'. {StorageSettings.template_hint()}"
+            )
 
         data = blob_client.download_blob().readall()
 
-    except AzureError as exc:
-        raise TemplateProcessingError("Failed to load template.") from exc
+    except TemplateProcessingError:
+        raise
+    except (AzureError, ValueError) as exc:
+        raise TemplateProcessingError(
+            f"Failed to load template '{template_path}' from blob storage. {StorageSettings.template_hint()}"
+        ) from exc
 
     return os.path.splitext(template_path)[1].lower(), data
 
@@ -177,10 +222,16 @@ def _render_html_template(html_bytes: bytes, context: Dict[str, str]) -> bytes:
     return out.getvalue()
 
 
-def _upload_contract(contract_bytes: bytes, container: str) -> Tuple[str, str]:
+def _upload_contract(
+    contract_bytes: bytes, connection_string: str, container: str
+) -> Tuple[str, str]:
     try:
-        conn = _get_storage_connection()
-        service = BlobServiceClient.from_connection_string(conn)
+        if not connection_string:
+            raise TemplateProcessingError(
+                f"Contract storage connection not configured. {StorageSettings.contract_hint()}"
+            )
+
+        service = BlobServiceClient.from_connection_string(connection_string)
         container_client = service.get_container_client(container)
 
         if not container_client.exists():
@@ -197,14 +248,19 @@ def _upload_contract(contract_bytes: bytes, container: str) -> Tuple[str, str]:
 
         return blob_name, blob_client.url
 
-    except AzureError as exc:
+    except TemplateProcessingError:
+        raise
+    except (AzureError, ValueError) as exc:
         logging.exception("Blob upload failed")
-        raise TemplateProcessingError(f"Failed to upload generated contract: {exc}") from exc
+        raise TemplateProcessingError(
+            f"Failed to upload generated contract to container '{container}'. {StorageSettings.contract_hint()}"
+        ) from exc
 
 
 # ============================================================
 # Azure Function Entry Point
 # ============================================================
+
 
 async def main(req: func.HttpRequest) -> func.HttpResponse:
     try:
@@ -223,21 +279,17 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
     except ContractContextError as exc:
         return _error_response(str(exc), 400)
 
+    try:
+        storage_settings = StorageSettings.from_env(payload.templatePath)
+    except TemplateProcessingError as exc:
+        return _error_response(str(exc), 400)
+
     # Load template
-    template_path = payload.templatePath or os.getenv("TemplateBlobPath", "").strip()
-    if not template_path:
-        return _error_response("Template path not provided.", 400)
-
-    template_connection = (
-        os.getenv("TemplateBlobConnection")
-        or os.getenv("ContractsBlobConnection")
-        or os.getenv("AzureWebJobsStorage")
-    )
-    template_container = os.getenv("TemplatesContainer", "templates")
-
     try:
         extension, template_bytes = _load_template(
-            template_path, template_connection, template_container
+            storage_settings.template_path,
+            storage_settings.template_connection,
+            storage_settings.template_container,
         )
     except TemplateProcessingError as exc:
         return _error_response(str(exc), 400)
@@ -252,10 +304,12 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
         return _error_response(str(exc), 400)
 
     # Upload
-    contracts_container = os.getenv("ContractsContainer", "contracts")
-
     try:
-        _, download_url = _upload_contract(contract_bytes, contracts_container)
+        _, download_url = _upload_contract(
+            contract_bytes,
+            storage_settings.contracts_connection,
+            storage_settings.contracts_container,
+        )
     except TemplateProcessingError as exc:
         return _error_response(str(exc), 500)
 
