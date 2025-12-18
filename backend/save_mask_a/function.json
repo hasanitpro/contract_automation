@@ -5,8 +5,8 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "methods": ["get"],
-      "route": "templates"
+      "methods": ["post"],
+      "route": "save_mask_a"
     },
     {
       "type": "http",
