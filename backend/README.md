@@ -41,9 +41,9 @@ Set the following values in `local.settings.json` (already scaffolded):
 
 | Setting | Description |
 | --- | --- |
-| `TABLE_CONN_STRING` | Connection string for Azure Table Storage (or Azurite). |
+| `TABLE_CONN_STRING` | Connection string for Azure Table Storage (or Azurite). Falls back to `AzureWebJobsStorage` when unset. |
 | `MASKA_TABLE` | Optional override for the Mask A table name (default `MaskAInput`). |
-| `BLOB_CONN_STRING` | Connection string for Azure Blob Storage (or Azurite). |
+| `BLOB_CONN_STRING` | Connection string for Azure Blob Storage (or Azurite). Falls back to `AzureWebJobsStorage` when unset. |
 | `CONTRACTS_CONTAINER` | Optional override for the contracts container (default `contracts`). |
 
 `AzureWebJobsStorage` must also point to a valid storage emulator or account for
