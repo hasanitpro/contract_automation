@@ -1,0 +1,1230 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Complete Annotated Contract Template</title>
+<style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .section {
+            background: white;
+            padding: 30px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 22px;
+            color: #1e293b;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #667eea;
+        }
+        .german {
+            background: #f8fafc;
+            border: 2px solid #cbd5e1;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-family: Georgia, serif;
+            line-height: 1.8;
+            color: #334155;
+        }
+        .german strong {
+            color: #0f172a;
+        }
+        .placeholder {
+            background: #fef3c7;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        .instruction {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .instruction-title {
+            color: #1e40af;
+            margin-bottom: 8px;
+        }
+        .field {
+            background: #d1fae5;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #065f46;
+            display: inline-block;
+            margin: 2px;
+        }
+        .conditional {
+            background: #fff7ed;
+            border: 3px solid #fb923c;
+            padding: 18px;
+            margin: 15px 0;
+            border-radius: 8px;
+        }
+        .conditional-title {
+            color: #c2410c;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        .condition {
+            background: #fef3c7;
+            padding: 4px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin: 4px 2px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+        .warning {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            padding: 14px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            padding: 14px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #cbd5e1;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .variant {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 6px;
+        }
+        .variant-title {
+            color: #475569;
+            margin-bottom: 10px;
+        }
+        .example {
+            font-style: italic;
+            color: #64748b;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+<h1>📋 Complete Annotated Contract Template</h1>
+<p style="font-size: 18px; margin-top: 10px;">
+        Wohnraummietvertrag - Every Section from Start to Finish
+    </p>
+<p style="font-size: 14px; margin-top: 10px; opacity: 0.9;">
+        German contract text + English implementation instructions for developers
+    </p>
+</div>
+<!-- ========================================= -->
+<!-- HEADER -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">HEADER: Contract Parties</div>
+<div class="german">
+<strong>Wohnraummietvertrag</strong><br/>
+        über eine Eigentumswohnung<br/><br/>
+        
+        zwischen<br/><br/>
+<span class="placeholder">[LANDLORD_NAME]</span><br/>
+<span class="placeholder">[CONDITIONAL: vertreten durch [REPRESENTATIVE_NAME]]</span><br/>
+<span class="placeholder">[LANDLORD_ADDRESS]</span><br/>
+<span class="placeholder">[CONDITIONAL: USt-ID: [VAT_ID]]</span><br/>
+<span class="placeholder">[CONDITIONAL: Steuernummer: [TAX_NUMBER]]</span><br/>
+        als Vermieter<br/><br/>
+        
+        und<br/><br/>
+<span class="placeholder">[TENANT_NAME]</span><br/>
+<span class="placeholder">[CONDITIONAL: vertreten durch [REPRESENTATIVE_NAME]]</span><br/>
+<span class="placeholder">[TENANT_ADDRESS]</span><br/>
+        als Mieter<br/><br/>
+        
+        wird folgender Mietvertrag geschlossen:
+    </div>
+<div class="warning">
+<strong>The "Rolle" field determines which data goes where throughout the ENTIRE contract.<br/>
+        🆕 NEW: Representation and tax ID fields are conditional and role-dependent.</strong>
+</div>
+<div class="instruction">
+<div class="instruction-title">Implementation Logic:</div>
+<strong>Step 1:</strong> Get <span class="field">A1 → Rolle</span><br/><br/>
+<strong>Step 2:</strong> Assign base data based on role:<br/><br/>
+<strong>IF Rolle = "Vermieter"</strong> (client is landlord):<br/>
+        • LANDLORD_NAME = <span class="field">A1 → Eigene_Angaben → Name</span><br/>
+        • LANDLORD_ADDRESS = <span class="field">A1 → Eigene_Angaben → Anschrift</span><br/>
+        • TENANT_NAME = <span class="field">A1 → Gegenpartei → Name</span><br/>
+        • TENANT_ADDRESS = <span class="field">A1 → Gegenpartei → Anschrift</span><br/><br/>
+<strong>IF Rolle = "Mieter"</strong> (client is tenant):<br/>
+        • LANDLORD_NAME = <span class="field">A1 → Gegenpartei → Name</span><br/>
+        • LANDLORD_ADDRESS = <span class="field">A1 → Gegenpartei → Anschrift</span><br/>
+        • TENANT_NAME = <span class="field">A1 → Eigene_Angaben → Name</span><br/>
+        • TENANT_ADDRESS = <span class="field">A1 → Eigene_Angaben → Anschrift</span><br/><br/>
+<strong>🆕 Step 3:</strong> Add conditional representation (apply to LANDLORD or TENANT based on Rolle):<br/><br/>
+<strong>IF</strong> <span class="field">Eigene_Angaben → Wird_vertreten</span> = "Ja":<br/>
+        • Add line: "vertreten durch: [<span class="field">Eigene_Angaben → Vertreten_durch</span>]"<br/>
+        • Insert AFTER name, BEFORE address<br/><br/>
+<strong>🆕 Step 4:</strong> Add conditional tax IDs (typically for landlord):<br/><br/>
+<strong>IF</strong> <span class="field">Eigene_Angaben → USt_ID</span> exists (not null/empty):<br/>
+        • Add line: "USt-ID: [<span class="field">Eigene_Angaben → USt_ID</span>]"<br/>
+        • Insert AFTER address<br/><br/>
+<strong>IF</strong> <span class="field">Eigene_Angaben → Steuernummer</span> exists (not null/empty):<br/>
+        • Add line: "Steuernummer: [<span class="field">Eigene_Angaben → Steuernummer</span>]"<br/>
+        • Insert AFTER USt-ID or AFTER address if no USt-ID
+    </div>
+<div class="annotations">
+<strong>🆕 NEW Data Sources (A1):</strong>
+<ul>
+<li><span class="field">Wird_vertreten</span>: Eigene_Angaben.Wird_vertreten (Ja/Nein)</li>
+<li><span class="field">Vertreten_durch</span>: Eigene_Angaben.Vertreten_durch (Text, conditional)</li>
+<li><span class="field">USt_ID</span>: Eigene_Angaben.USt_ID (Text, optional)</li>
+<li><span class="field">Steuernummer</span>: Eigene_Angaben.Steuernummer (Text, optional)</li>
+</ul>
+<strong>Display Rules:</strong>
+<ul>
+<li>Representation applies to the party who selected "Wird_vertreten = Ja"</li>
+<li>Tax IDs typically appear for landlord (commercial use)</li>
+<li>All fields are optional - only show if data exists</li>
+</ul>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- PRÄAMBEL (CONDITIONAL) -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">PRÄAMBEL: Preamble (Conditional)</div>
+<div class="conditional">
+<div class="conditional-title">🔀 CONDITIONAL SECTION</div>
+<div class="condition">IF Zustand_Bei_Uebergabe = "neu erstellt"</div>
+<div class="german" style="margin-top: 10px;">
+<strong>Präambel - Besondere Hinweise</strong><br/><br/>
+            Die Wohnung wurde neu errichtet und am <span class="placeholder">[DATE]</span> bezugsfertig.
+        </div>
+<div class="instruction">
+<strong>Condition:</strong> <span class="field">A3 → Zustand_Bei_Uebergabe</span> = "neu erstellt"<br/><br/>
+<strong>IF TRUE:</strong> Show this section with DATE = <span class="field">A3 → Bezugsfertig_seit</span><br/>
+            Format: DD.MM.YYYY (e.g., "15.03.2024")<br/><br/>
+<strong>IF FALSE:</strong> Hide entire Präambel, continue to § 1
+        </div>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 1 MIETGEGENSTAND -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 1: Mietgegenstand (Rental Property)</div>
+<div class="german">
+<strong>§ 1 Mietgegenstand</strong><br/><br/>
+        
+        (1) Vermietet werden im Gebäude<br/>
+<span class="placeholder">[OBJEKTADRESSE]</span><br/><br/>
+        
+        folgende Wohnräume:<br/>
+<span class="placeholder">[WOHNUNG_BESCHREIBUNG]</span><br/><br/>
+        
+        Mitvermietet werden folgende Einrichtungsgegenstände:<br/>
+<span class="placeholder">[AUSSTATTUNG]</span><br/><br/>
+        
+        (2) Als Wohnfläche wird eine Größe von <span class="placeholder">[FLAECHE]</span> m² vereinbart. 
+        Bei der Ermittlung der Fläche wurden Flächen wie Balkone, Loggien und Terrassen zu 50 % berücksichtigt.
+    </div>
+<div class="instruction">
+<div class="instruction-title">Data Mapping:</div>
+<table>
+<tr>
+<th>Placeholder</th>
+<th>Source Field</th>
+<th>Format</th>
+</tr>
+<tr>
+<td>[OBJEKTADRESSE]</td>
+<td><span class="field">A2 → Objektadresse</span></td>
+<td>Insert as-is</td>
+</tr>
+<tr>
+<td>[WOHNUNG_BESCHREIBUNG]</td>
+<td><span class="field">A2 → Wohnungbezeichnung</span> +<br/><span class="field">A2 → Nebenraeume[]</span></td>
+<td>Combine into text<br/>e.g., "im 2. OG links, bestehend aus 3 Zimmern, Küche, Bad, Keller"</td>
+</tr>
+<tr>
+<td>[AUSSTATTUNG]</td>
+<td><span class="field">A2 → Mitvermietete_Ausstattung[]</span></td>
+<td>Comma-separated<br/>If empty: "keine"</td>
+</tr>
+<tr>
+<td>[FLAECHE]</td>
+<td><span class="field">A2 → Wohnflaeche_Qm</span></td>
+<td>German decimal: 75.5 → "75,50"</td>
+</tr>
+</table>
+</div>
+<div class="conditional">
+<div class="conditional-title">🔀 § 1 (3) WEG Paragraph - CONDITIONAL</div>
+<div class="condition">IF Wohnungsart = "Eigentumswohnung in Mehrfamilienhaus"</div>
+<div class="condition">AND WEG = "Ja"</div>
+<div class="german" style="margin-top: 10px;">
+            (3) Umlageschlüssel für Nebenkosten bei Eigentumswohnung<br/><br/>
+            
+            Der Mietgegenstand ist eine Eigentumswohnung. Die Abrechnung der Nebenkosten – ausgenommen 
+            der Grundsteuer und ggf. der Heizkosten – erfolgt im Rahmen der Wohnungseigentümergemeinschaft.<br/><br/>
+            
+            Auf die Wohnung entfallen <span class="placeholder">[MEA]</span> Miteigentumsanteile [...]<br/><br/>
+<span class="placeholder">[WEG_TEXT] <!-- Maps to: weg_text --></span>
+</div>
+<div class="instruction">
+<strong>IF both conditions TRUE:</strong> Show paragraph (3)<br/>
+            • [MEA] = <span class="field">A2 → Miteigentumsanteile</span> (optional)<br/>
+            • [WEG_TEXT] <!-- Maps to: weg_text --> = <span class="field">B3 → WEG_Verweis_Text</span> (optional lawyer text)<br/><br/>
+<strong>IF FALSE:</strong> Hide paragraph (3) completely
+        </div>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 2 ZUSTAND -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 2: Zustand des Mietgegenstandes / Schlüssel</div>
+<div class="german">
+<strong>§ 2 Zustand des Mietgegenstandes / Schlüssel</strong><br/><br/>
+        
+        (1) Der Mietgegenstand wird <span class="placeholder">[ZUSTAND]</span> übergeben.<br/><br/>
+        
+        (2) Über den Zustand des Mietgegenstandes zum Zeitpunkt der Übergabe erstellen die Parteien 
+        ein Übernahmeprotokoll.
+    </div>
+<div class="instruction">
+<div class="instruction-title">[ZUSTAND] Mapping:</div>
+        Source: <span class="field">A3 → Zustand_Bei_Uebergabe</span><br/><br/>
+<table>
+<tr>
+<th>Form Value</th>
+<th>Insert Text</th>
+</tr>
+<tr>
+<td>"renoviert"</td>
+<td>"renoviert"</td>
+</tr>
+<tr>
+<td>"neu erstellt"</td>
+<td>"ist neu erstellt"</td>
+</tr>
+<tr>
+<td>"gebraucht/vertragsgemäß"</td>
+<td>"in gebrauchtem, vertragsgemäßem Zustand"</td>
+</tr>
+</table>
+</div>
+<div class="conditional">
+<div class="conditional-title">🔀 (3)-(5) Noise/Environment Clause - CONDITIONAL</div>
+        Source: <span class="field">B6 → Umgebung_Laerm_Klausel</span>
+<div class="variant">
+<div class="variant-title">OPTION A: Include Full Clause</div>
+<div class="condition">IF = "aufnehmen"</div>
+<div class="german">
+                (3) Vereinbarungen über die Lage bzw. das Umfeld des Mietgegenstands sind nicht getroffen. 
+                Insbesondere sind dem Mieter bekannt bzw. während der Besichtigung erkennbar gewesen:<br/><br/>
+                
+                (4) <em>Dem Mieter ist bekannt, dass sich der Mietgegenstand [description of environment] befindet.</em><br/><br/>
+                
+                (5) Die Mietparteien sind sich einig, dass etwaige Beeinträchtigungen aus dem Umfeld oder 
+                von dritten Personen, gleich welcher Art, den Mieter nicht zur Minderung berechtigen.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">OPTION B: Standard Text Only</div>
+<div class="condition">IF = "nicht aufnehmen"</div>
+<div class="german">
+                (3) Vereinbarungen über die Lage bzw. das Umfeld des Mietgegenstands sind nicht getroffen.
+            </div>
+</div>
+</div>
+<div class="german">
+        (6) Der Mieter erhält vom Vermieter für die Mietzeit die im Übernahmeprotokoll aufgeführten Schlüssel. 
+        Dies sind <span class="placeholder">[ANZAHL]</span> Schlüssel, davon:<br/>
+<span class="placeholder">[ARTEN]</span>
+</div>
+<div class="instruction">
+        • [ANZAHL] = <span class="field">A3 → Schluessel_Gesamtzahl</span><br/>
+        • [ARTEN] = <span class="field">A3 → Schluessel_Arten[]</span> (comma-separated list)
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 3 MIETZEIT -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 3: Mietzeit (Rental Period)</div>
+<div class="german">
+<strong>§ 3 Mietzeit</strong><br/><br/>
+        
+        (1) Das Mietverhältnis beginnt am <span class="placeholder">[MIETBEGINN]</span>.<br/><br/>
+        
+        (2) Der Mietvertrag läuft auf unbestimmte Zeit und kann mit gesetzlicher Frist (§ 573c BGB) 
+        gekündigt werden.
+    </div>
+<div class="instruction">
+        [MIETBEGINN] = <span class="field">A4 → Mietbeginn</span><br/>
+        Format: DD.MM.YYYY
+    </div>
+<div class="conditional">
+<div class="conditional-title">🔀 Additional: Termination Waiver - CONDITIONAL</div>
+<div class="condition">IF Kuendigungsverzicht_Jahre &gt; 0</div>
+<div class="german" style="margin-top: 10px;">
+            Die Parteien verzichten für den Zeitraum von <span class="placeholder">[JAHRE]</span> Jahren 
+            auf das Recht zur ordentlichen Kündigung gemäß § 573c BGB. Das Recht zur außerordentlichen 
+            Kündigung bleibt hiervon unberührt.
+        </div>
+<div class="instruction">
+            Source: <span class="field">B1 → Kuendigungsverzicht_Jahre</span><br/>
+<strong>IF value &gt; 0:</strong> Insert paragraph with [JAHRE] = value<br/>
+<strong>IF value = 0:</strong> Hide this paragraph
+        </div>
+</div>
+<div class="german" style="margin-top: 15px;">
+        (6) § 545 BGB wird ausgeschlossen. Durch den Gebrauch des Mietgegenstands nach Vertragsablauf 
+        durch den Mieter verlängert sich das Mietverhältnis nicht.
+    </div>
+<div class="success">
+        ✓ § 545 BGB exclusion is ALWAYS included (no condition)
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 4 KÜNDIGUNG -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 4: Kündigung (Termination)</div>
+<div class="german">
+<strong>§ 4 Kündigung</strong><br/><br/>
+        
+        Es gelten die gesetzlichen Regelungen.<br/><br/>
+        
+        Miete iSv § 543 Abs. 2 S. 1 Nr. 3 BGB – deren nicht vollständige oder rechtzeitige Zahlung 
+        zu einem kündigungsbegründenden Zahlungsrückstand führen kann.
+    </div>
+<div class="instruction">
+<strong>Standard text - No placeholders</strong>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 5 MIETE UND BK -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 5: Miete und Betriebskosten</div>
+<div class="german">
+<strong>§ 5 Miete und Betriebskosten / Vorauszahlungen / Abrechnung</strong><br/><br/>
+        
+        (1) Der Mieter trägt neben der Miete auch die Betriebskosten sowie die Kosten für die Heizung 
+        und die Warmwasserversorgung.<br/><br/>
+        
+        (2) Für die Betriebskosten sowie die Kosten für die Heizung und die Warmwasserversorgung 
+        leistet er monatliche Vorauszahlungen.<br/><br/>
+        
+        (3) Der Vermieter rechnet über die Vorauszahlungen jährlich ab. Der Abrechnungszeitraum für 
+        die Betriebskosten läuft vom 01.01. bis zum 31.12. eines Kalenderjahres.<br/><br/>
+        
+        (4) Derzeit sind zu zahlen:
+    </div>
+<div style="overflow-x: auto; margin: 20px 0;">
+<table>
+<thead>
+<tr>
+<th>Description (German)</th>
+<th>Amount (EUR)</th>
+<th>Data Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Die Miete beträgt monatlich</td>
+<td><span class="placeholder">X.XXX,XX</span></td>
+<td><span class="field">A5 → Grundmiete_EUR</span></td>
+</tr>
+<tr class="conditional-row">
+<td>🆕 + Zuschlag für Möblierung</td>
+<td><span class="placeholder">XXX,XX</span></td>
+<td><span class="field">A5 → Zuschlag_Moeblierung</span> (conditional)</td>
+</tr>
+<tr class="conditional-row">
+<td>🆕 + Zuschlag für teilgewerbliche Nutzung</td>
+<td><span class="placeholder">XXX,XX</span></td>
+<td><span class="field">A5 → Zuschlag_Teilgewerbe</span> (conditional)</td>
+</tr>
+<tr class="conditional-row">
+<td>🆕 + Zuschlag für Untervermietung</td>
+<td><span class="placeholder">XXX,XX</span></td>
+<td><span class="field">A5 → Zuschlag_Untervermietung</span> (conditional)</td>
+</tr>
+<tr>
+<td>Vorauszahlung für die Betriebskosten für Heizung und Warmwasser</td>
+<td><span class="placeholder">XXX,XX</span></td>
+<td><span class="field">A5 → VZ_Heizung_WW_EUR</span></td>
+</tr>
+<tr>
+<td>Vorauszahlung für andere Betriebskosten gemäß § 2 der Betriebskostenverordnung</td>
+<td><span class="placeholder">XXX,XX</span></td>
+<td><span class="field">A5 → VZ_BK_EUR</span></td>
+</tr>
+<tr>
+<td>Garagen- oder Stellplatzmiete</td>
+<td><span class="placeholder">XXX,XX</span></td>
+<td><span class="field">A5 → Stellplatz_EUR</span></td>
+</tr>
+<tr style="background: #f0fdf4; ">
+<td>monatlich zu zahlender Gesamtbetrag</td>
+<td><span class="placeholder">X.XXX,XX</span></td>
+<td><span class="field">A5 → Gesamtmiete_EUR</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="instruction">
+<div class="instruction-title">🆕 NEW: Conditional Surcharge Rows</div>
+<strong>Each surcharge row is CONDITIONAL - only show if amount &gt; 0:</strong><br/><br/>
+        
+        • <strong>IF</strong> <span class="field">A5 → Zuschlag_Moeblierung</span> &gt; 0: Show "Zuschlag für Möblierung" row<br/>
+        • <strong>IF</strong> <span class="field">A5 → Zuschlag_Teilgewerbe</span> &gt; 0: Show "Zuschlag für teilgewerbliche Nutzung" row<br/>
+        • <strong>IF</strong> <span class="field">A5 → Zuschlag_Untervermietung</span> &gt; 0: Show "Zuschlag für Untervermietung" row<br/><br/>
+<strong>Gesamtmiete Calculation:</strong><br/>
+        Gesamtmiete_EUR = Grundmiete_EUR + Zuschlag_Moeblierung + Zuschlag_Teilgewerbe + Zuschlag_Untervermietung + VZ_Heizung_WW_EUR + VZ_BK_EUR + Stellplatz_EUR<br/><br/>
+<strong>Format ALL amounts:</strong> German currency with comma<br/>
+        Example: 1450.50 → "1.450,50"
+    </div>
+<div class="annotations">
+<strong>🆕 NEW Data Sources (A5):</strong>
+<ul>
+<li><span class="field">Zuschlag_Moeblierung</span>: Miete_BK_Zahlung.Zuschlag_Moeblierung (EUR, optional)</li>
+<li><span class="field">Zuschlag_Teilgewerbe</span>: Miete_BK_Zahlung.Zuschlag_Teilgewerbe (EUR, optional)</li>
+<li><span class="field">Zuschlag_Untervermietung</span>: Miete_BK_Zahlung.Zuschlag_Untervermietung (EUR, optional)</li>
+</ul>
+<strong>Usage:</strong>
+<ul>
+<li>These surcharges are separate from Grundmiete and itemized in the table</li>
+<li>Each appears as its own row if amount is provided</li>
+<li>All flow into Gesamtmiete calculation</li>
+<li>Mentioned in § 6 for rent adjustment purposes</li>
+</ul>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 6 MIETÄNDERUNGEN + MIETPREISBREMSE -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 6: Mietänderungen (Rent Adjustments)</div>
+<div class="warning">
+<strong>        Indexmiete AND Staffelmiete cannot both be "Ja"
+    </strong></div>
+<div class="conditional">
+<div class="conditional-title">🔀 CHOOSE ONE OF THREE OPTIONS:</div>
+<div class="variant">
+<div class="variant-title">OPTION 1: Standard (Default)</div>
+<div class="condition">IF Indexmiete = "Nein" AND Staffelmiete = "Nein"</div>
+<div class="german">
+                Die Veränderung der Miethöhe richtet sich nach den gesetzlichen Bestimmungen.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">OPTION 2: Index Rent</div>
+<div class="condition">IF B2 → Indexmiete_557b = "Ja"</div>
+<div class="german">
+                Die Miete ist als Indexmiete nach § 557b BGB vereinbart. Die Veränderung der Miethöhe 
+                erfolgt entsprechend der Veränderung des vom Statistischen Bundesamt ermittelten 
+                Verbraucherpreisindexes für Deutschland.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">OPTION 3: Graduated Rent</div>
+<div class="condition">IF B2 → Staffelmiete = "Ja"</div>
+<div class="german">
+                Die Miete ist als Staffelmiete vereinbart. Die Miete erhöht sich zu den folgenden Zeitpunkten:<br/><br/>
+<span class="placeholder">[STAFFELMIETE_SCHEDULE]</span>
+</div>
+<div class="warning">
+</div>
+</div>
+</div>
+<div class="conditional" style="border-color: #ef4444;">
+<div class="conditional-title" style="color: #991b1b;">⭐ MIETPREISBREMSE (Rent Control) - COMPLEX MULTI-STAGE LOGIC</div>
+<div class="instruction">
+<div class="instruction-title">Decision Tree (Execute in Order):</div>
+<strong>STAGE 1: Date Check</strong><br/>
+            Check: <span class="field">A3 → Bezugsfertig_seit</span><br/><br/>
+<strong>IF date &gt;= 01.10.2014:</strong><br/>
+            → Insert: "Die Wohnung, die Gegenstand dieses Mietvertrages ist, wurde vor dem 1. Oktober 2014 
+            weder genutzt noch vermietet. Eine Nutzung oder Vermietung erfolgte erst nach dem 1. Oktober 2014 (§ 556f BGB)."<br/>
+            → STOP (no further MPB checks)<br/><br/>
+<strong>IF date &lt; 01.10.2014:</strong><br/>
+            → Continue to STAGE 2<br/><br/>
+<hr style="margin: 15px 0; border: 1px solid #cbd5e1;"/>
+<strong>STAGE 2: Property Status</strong><br/>
+            Check: <span class="field">B2 → MPB_Status_Wohnung</span><br/><br/>
+<strong>IF = "Neubau (nie vermietet)":</strong><br/>
+            → Insert same clause as Stage 1<br/>
+            → STOP<br/><br/>
+<strong>IF = "Bereits vermietet":</strong><br/>
+            → Continue to STAGE 3<br/><br/>
+<hr style="margin: 15px 0; border: 1px solid #cbd5e1;"/>
+<strong>STAGE 3: Prior Tenancy Start</strong><br/>
+            Check: <span class="field">B2 → MPB_Vormietverhaeltnis</span><br/><br/>
+            
+            ALWAYS insert: "Das Vormietverhältnis hat [vor/nach] dem 1. Juni 2015 begonnen."<br/><br/>
+<strong>IF = "vor dem 1. Juni 2015":</strong><br/>
+            → STOP (less restrictive)<br/><br/>
+<strong>IF = "nach dem 1. Juni 2015":</strong><br/>
+            → Continue to STAGE 4<br/><br/>
+<hr style="margin: 15px 0; border: 1px solid #cbd5e1;"/>
+<strong>STAGE 4: Rent Amount &amp; Justifications</strong><br/>
+            Check: <span class="field">B2 → MPB_Miete_innerhalb_Grenze</span><br/><br/>
+            
+            Insert: "Die in diesem Mietvertrag geforderte Miete überschreitet die nach § 556d BGB 
+            (sogenannte „Mietpreisbremse") zulässige Miete (ortsübliche Miete + 10 %) [nicht/doch]."<br/><br/>
+<strong>IF = "Ja, unter Grenze":</strong><br/>
+            → Insert "nicht"<br/>
+            → STOP<br/><br/>
+<strong>IF = "Nein, über Grenze":</strong><br/>
+            → Omit "nicht"<br/>
+            → ADD: "Der Vermieter erklärt hiermit vor Mietvertragsabschluss, dass die vereinbarte Miete 
+            auf folgender Ausnahme von § 556d BGB (zulässige Miethöhe bei Mietbeginn) beruht:"<br/>
+            → Add any/all checked justifications below:<br/><br/>
+<strong>Justification 1: Prior Rent Higher</strong><br/>
+            IF <span class="field">B2 → MPB_Begruendung_Vormiete</span> = checked<br/>
+            Text: "Die Vormiete gemäß § 556e Abs. 1 BGB betrug [AMOUNT] Euro (Nettokaltmiete)."<br/>
+            [AMOUNT] = <span class="field">B2 → MPB_Vormiete_EUR</span><br/><br/>
+<strong>Justification 2: Recent Modernization</strong><br/>
+            IF <span class="field">B2 → MPB_Begruendung_Modernisierung</span> = checked<br/>
+            Text: "In den letzten drei Jahren vor Beginn dieses Mietverhältnisses wurde eine Modernisierung 
+            im Sinne des § 555b BGB durchgeführt, für die eine Modernisierungsmieterhöhung zulässig gewesen 
+            wäre (§ 556e Abs. 2 BGB)."<br/>
+            Optional details: <span class="field">B2 → MPB_Modernisierung_Details</span><br/><br/>
+<strong>Justification 3: First Rental After Comprehensive Modernization</strong><br/>
+            IF <span class="field">B2 → MPB_Begruendung_Erstmiete</span> = checked<br/>
+            Text: "Bei diesem Mietvertragsabschluss handelt es sich um den ersten nach umfassender 
+            Modernisierung (§ 556f BGB)."<br/>
+            Optional details: <span class="field">B2 → MPB_Erstmiete_Details</span>
+</div>
+</div>
+<div class="german" style="margin-top: 20px;">
+        (2) Die Miete einschließlich der Betriebskostenvorauszahlung ist spätestens am 3. Werktag 
+        eines jeden Monats an den Vermieter auf folgendes Konto zu zahlen:<br/><br/>
+<span class="placeholder">[IBAN]</span>
+</div>
+<div class="instruction">
+        [IBAN] = <span class="field">A1 → IBAN</span> (from Landlord based on Role)<br/>
+        Format with spaces: "DE89 3704 0044 0532 0130 00"
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 7 BETRIEBSKOSTEN DETAILS -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 7: Betriebskosten, Heizungs- und Warmwasserkosten</div>
+<div class="german">
+<strong>§ 7 Betriebskosten, Heizungs- und Warmwasserkosten</strong><br/><br/>
+        
+        (1) Art und Umfang der Betriebskosten richten sich nach den Vorschriften der 
+        Betriebskostenverordnung in der jeweils geltenden Fassung.<br/><br/>
+        
+        (2) Entstehen nach Vertragsschluss neue Betriebskosten oder werden öffentliche Abgaben 
+        neu eingeführt, ist der Vermieter berechtigt, diese auf den Mieter umzulegen.<br/><br/>
+        
+        (3) Folgende sonstige Betriebskosten im Sinne von § 2 Nr. 17 der Betriebskostenverordnung 
+        werden als umlagefähig vereinbart:<br/><br/>
+<span class="placeholder">[ZUSATZ_BK]</span>
+</div>
+<div class="instruction">
+        [ZUSATZ_BK] = <span class="field">B3 → Zusatzpositionen[]</span><br/><br/>
+        Display as numbered list:<br/>
+        1. [First item]<br/>
+        2. [Second item]<br/>
+        etc.<br/><br/>
+        If array is empty → "Es werden keine zusätzlichen Positionen vereinbart."
+    </div>
+<div class="german">
+        (4) Die Betriebskosten - ausgenommen die Grundsteuer - werden wie im Verhältnis der 
+        Wohnungseigentümer untereinander nach dem in der Teilungserklärung festgelegten 
+        Verteilungsschlüssel umgelegt.
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 8 KAUTION -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 8: Mietsicherheit (Security Deposit)</div>
+<div class="german">
+<strong>§ 8 Mietsicherheit</strong><br/><br/>
+        
+        (1) Der Mieter ist verpflichtet, eine Mietsicherheit in Höhe von 
+        <span class="placeholder">[ANZAHL]</span> Monatsmieten = <span class="placeholder">[BETRAG]</span> EUR 
+        an den Vermieter zu leisten.<br/><br/>
+        
+        (2) Der Mieter ist zu drei gleichen monatlichen Teilzahlungen berechtigt.<br/><br/>
+        
+        (3) Die erste Teilzahlung ist zu Beginn des Mietverhältnisses fällig. Die weiteren Teilzahlungen 
+        werden zusammen mit den unmittelbar folgenden Mietzahlungen fällig.<br/><br/>
+        
+        (4) Für die Anlage der Mietkaution sowie die Verzinsung gelten die gesetzlichen Bestimmungen.
+    </div>
+<div class="instruction">
+<div class="instruction-title">Data &amp; Calculation:</div>
+        
+        [ANZAHL] = <span class="field">A7 → Kaution_Monatsmieten</span> (must be 1, 2, or 3)<br/><br/>
+<strong>[BETRAG] = CALCULATED:</strong><br/>
+<span class="field">A5 → Grundmiete_EUR</span> × <span class="field">A7 → Kaution_Monatsmieten</span><br/><br/>
+        
+        Example: 1,450.00 × 3 = 4,350.00<br/>
+        Format as: "4.350,00"
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 9 NUTZUNGSZWECK / UNTERVERMIETUNG -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 9: Nutzungszweck, Untervermietung</div>
+<div class="german">
+<strong>§ 9 Nutzungszweck, Untervermietung</strong><br/><br/>
+        
+        (1) Der Mieter darf den Mietgegenstand nur zu eigenen Wohnzwecken benutzen.<br/><br/>
+        
+        (2) Sollte sich nach Vertragsschluss ein berechtigtes Interesse des Mieters an einer 
+        anderweitigen Nutzung ergeben, hat er vorher die Zustimmung des Vermieters einzuholen.
+    </div>
+<div class="conditional">
+<div class="conditional-title">🔀 (3) Subletting Clause - CHOOSE ONE:</div>
+        Source: <span class="field">B4 → Untervermietung_Klausel</span>
+<div class="variant">
+<div class="variant-title">VARIANT A: Consent + Security Assignment</div>
+<div class="condition">IF = "Zustimmung + Sicherungsabtretung"</div>
+<div class="german">
+                (3) Für den Fall einer Untervermietung tritt der Mieter die ihm gegen den Untermieter 
+                zustehenden Forderungen nebst Pfandrecht bis zur Höhe der Mietforderungen des Vermieters 
+                an den Vermieter ab. Der Vermieter nimmt die Abtretung an.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">VARIANT B: Consent Only</div>
+<div class="condition">IF = "nur Zustimmung"</div>
+<div class="german">
+                (3) Der Mieter hat die Zustimmung des Vermieters einzuholen, bevor er den Mietgegenstand 
+                oder Teile davon einem Dritten zum Gebrauch überlässt.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">VARIANT C: Individual</div>
+<div class="condition">IF = "individuell"</div>
+<div class="german">
+                (3) <span class="placeholder">[CUSTOM_SUBLETTING_TEXT] <!-- Maps to: unterverm_klausel --></span>
+</div>
+<div class="warning">
+</div>
+</div>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 10 TIERHALTUNG -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 10: Tierhaltung (Pet Keeping)</div>
+<div class="conditional">
+<div class="conditional-title">🔀 CHOOSE ONE OF THREE VARIANTS:</div>
+        Source: <span class="field">B4 → Tierhaltung_Ton</span>
+<div class="variant">
+<div class="variant-title">VARIANT 1: Standard</div>
+<div class="condition">IF = "Standard"</div>
+<div class="german">
+<strong>§ 10 Tierhaltung</strong><br/><br/>
+                
+                Die Kleintierhaltung (Zierfische, Kleinvögel, Hamster, etc.) ist im üblichen Rahmen erlaubt. 
+                Andere Tiere dürfen nur mit vorheriger Zustimmung des Vermieters gehalten werden.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">VARIANT 2: More Restrictive</div>
+<div class="condition">IF = "restriktiver"</div>
+<div class="german">
+<strong>§ 10 Tierhaltung</strong><br/><br/>
+                
+                Das Halten von Tieren bedarf der vorherigen schriftlichen Zustimmung des Vermieters. 
+                Dies gilt auch für Kleintiere. Der Vermieter kann die Zustimmung bei berechtigtem Interesse widerrufen.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">VARIANT 3: Individual</div>
+<div class="condition">IF = "individuell"</div>
+<div class="german">
+<strong>§ 10 Tierhaltung</strong><br/><br/>
+<span class="placeholder">[CUSTOM_PET_TEXT] <!-- Maps to: tiere_details --></span>
+</div>
+<div class="warning">
+</div>
+</div>
+</div>
+<div class="conditional" style="margin-top: 15px;">
+<div class="conditional-title">🔀 Special Agreement Addition - CONDITIONAL</div>
+<div class="condition">IF A6 → Haustiere = "Sondervereinbarung (individuell)"</div>
+<div class="instruction">
+<strong>IF condition TRUE:</strong> Append to chosen variant above:<br/><br/>
+            "Sondervereinbarung: <span class="placeholder">[DETAILS]</span>"<br/><br/>
+            Where [DETAILS] = <span class="field">A6 → Details_Sondervereinbarung</span>
+</div>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 11-12 STANDARD SECTIONS -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 11: Haftungsbeschränkung (Liability Limitation)</div>
+<div class="german">
+<strong>§ 11 Haftungsbeschränkung</strong><br/><br/>
+        
+        Die verschuldensunabhängige Haftung des Vermieters für bei Vertragsabschluss vorhandene 
+        Sachmängel gem. § 536a Abs. 1 Satz 1 Alt. 1 BGB ist ausgeschlossen, soweit dem Mieter der 
+        Mangel nicht arglistig verschwiegen wurde oder eine Garantie nicht übernommen wurde.
+    </div>
+<div class="success">
+        ✓ Standard text - Always included - No placeholders
+    </div>
+</div>
+<div class="section">
+<div class="section-title">§ 12: Veränderungen an und im Mietgegenstand durch den Mieter</div>
+<div class="german">
+<strong>§ 12 Veränderungen an und im Mietgegenstand durch den Mieter</strong><br/><br/>
+        
+        (1) Veränderungen an und im Mietgegenstand, insbesondere Um- und Einbauten, das Anbringen 
+        und Entfernen von Installationen und dgl. sind nur mit vorheriger schriftlicher Zustimmung 
+        des Vermieters zulässig.<br/><br/>
+        
+        (2) Für weitere Veränderungen hat der Mieter vorher die Zustimmung des Vermieters einzuholen. 
+        Dieser kann die Zustimmung davon abhängig machen, dass der Mieter bei Beendigung des 
+        Mietverhältnisses den ursprünglichen Zustand wiederherstellt.
+    </div>
+<div class="success">
+        ✓ Standard text - Always included - No placeholders
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 13 SCHÖNHEITSREPARATUREN - THE BIG ONE -->
+<!-- ========================================= -->
+<div class="section" style="border: 4px solid #f59e0b;">
+<div class="section-title" style="color: #f59e0b;">§ 13: Schönheitsreparaturen ⭐⭐⭐ MOST COMPLEX!</div>
+<div class="warning">
+<strong>🔥 5 COMPLETELY DIFFERENT VARIANTS!</strong><br/>
+        Follow decision tree carefully - only ONE variant will be used per contract.
+    </div>
+<div class="instruction">
+<div class="instruction-title">🌳 DECISION TREE (Execute Steps in Order):</div>
+<div style="background: #f8fafc; padding: 15px; font-family: monospace; font-size: 13px; line-height: 1.8;">
+STEP 1: Check Property Condition<br/>
+│<br/>
+├─ <strong>IF</strong> A3 → Zustand_Bei_Uebergabe = "renoviert" <strong>OR</strong> "neu erstellt"<br/>
+│  └─→ <strong>USE CASE 1</strong><br/>
+│     └─→ DONE ✓<br/>
+│<br/>
+└─ <strong>IF</strong> A3 → Zustand_Bei_Uebergabe = "gebraucht/vertragsgemäß"<br/>
+   │<br/>
+   STEP 2: Check SR Model<br/>
+   │<br/>
+   ├─ <strong>IF</strong> B5 → SR_Modell = "Pauschal (ohne Fristen)"<br/>
+   │  └─→ <strong>USE CASE 2a</strong><br/>
+   │     └─→ DONE ✓<br/>
+   │<br/>
+   ├─ <strong>IF</strong> B5 → SR_Modell = "Kostenzuschuss"<br/>
+   │  └─→ <strong>USE CASE 2b-i</strong><br/>
+   │     └─→ DONE ✓<br/>
+   │<br/>
+   └─ <strong>IF</strong> B5 → SR_Modell = "Mietfreiheit"<br/>
+      └─→ <strong>USE CASE 2b-ii</strong><br/>
+         └─→ DONE ✓
+        </div>
+</div>
+<div class="variant">
+<div class="variant-title">📌 CASE 1: Renovated/New Construction</div>
+<div class="condition">Zustand = "renoviert" OR "neu erstellt"</div>
+<div class="german">
+<strong>§ 13 Schönheitsreparaturen</strong><br/><br/>
+<strong>Der Mieter trägt die Schönheitsreparaturen.</strong><br/><br/>
+            
+            Zu den Schönheitsreparaturen gehören: das Tapezieren, Anstreichen oder Kalken der Wände 
+            und Decken, das Streichen der Fußböden, Heizkörper einschließlich Heizrohre, der Innentüren 
+            sowie der Fenster und Außentüren von innen.
+        </div>
+<div class="success">✓ No placeholders - Insert exact German text</div>
+</div>
+<div class="variant">
+<div class="variant-title">📌 CASE 2a: Unrenovated - No Obligation</div>
+<div class="condition">Zustand = "gebraucht/vertragsgemäß" AND SR_Modell = "Pauschal (ohne Fristen)"</div>
+<div class="german">
+<strong>§ 13 Schönheitsreparaturen</strong><br/><br/>
+            
+            Die Wohnung wird unrenoviert oder renovierungsbedürftig vermietet und übergeben. 
+            Dieser Zustand wird als vertragsgerechter Sollzustand vereinbart. 
+            <strong>Keine Partei schuldet Schönheitsreparaturen.</strong><br/><br/>
+            
+            Bei einer wesentlichen Verschlechterung des anfänglichen Dekorationszustandes (Sollzustandes) 
+            kann der Mieter vom Vermieter die Durchführung von Schönheitsreparaturen verlangen. 
+            In diesem Falle ist der Mieter verpflichtet, sich in angemessenem— in der Regel hälftigem— 
+            Umfang an den erforderlichen Kosten zu beteiligen.
+        </div>
+<div class="success">✓ No placeholders - Insert exact German text</div>
+</div>
+<div class="variant">
+<div class="variant-title">📌 CASE 2b-i: Renovation for Cost Subsidy</div>
+<div class="condition">Zustand = "gebraucht/vertragsgemäß" AND SR_Modell = "Kostenzuschuss"</div>
+<div class="german">
+<strong>§ 13 Schönheitsreparaturen</strong><br/><br/>
+            
+            Die Wohnung wird unrenoviert bzw. renovierungsbedürftig vermietet und übergeben. 
+            Der Mieter verpflichtet sich, die erforderlichen Schönheitsreparaturen durchzuführen 
+            und erhält vom Vermieter für diesen Zweck einen Kostenzuschuss in Höhe von 
+            <span class="placeholder">[BETRAG]</span> Euro.<br/><br/>
+            
+            Zu den Schönheitsreparaturen gehören: das Tapezieren, Anstreichen oder Kalken der Wände 
+            und Decken, das Streichen der Fußböden, Heizkörper einschließlich Heizrohre, der Innentüren 
+            sowie der Fenster und Außentüren von innen.
+        </div>
+<div class="instruction">
+            [BETRAG] = <span class="field">B5 → SR_Kostenzuschuss_EUR</span><br/>
+            Format: "2.500,00" (German currency with comma)
+        </div>
+</div>
+<div class="variant">
+<div class="variant-title">📌 CASE 2b-ii: Renovation for Rent-Free Months</div>
+<div class="condition">Zustand = "gebraucht/vertragsgemäß" AND SR_Modell = "Mietfreiheit"</div>
+<div class="german">
+<strong>§ 13 Schönheitsreparaturen</strong><br/><br/>
+            
+            Die Wohnung wird unrenoviert bzw. renovierungsbedürftig vermietet und übergeben. 
+            Der Mieter verpflichtet sich, die erforderlichen Schönheitsreparaturen durchzuführen 
+            und erhält vom Vermieter für diesen Zweck Mietfreiheit für <span class="placeholder">[MONATE]</span> Monate.<br/><br/>
+            
+            Der Mieter ist in diesem Zeitraum von der Zahlung der Nettomiete befreit und hat lediglich 
+            die Betriebskosten einschließlich der Heiz- und Warmwasserkosten zu tragen und die vereinbarten 
+            Vorauszahlungen zu leisten.<br/><br/>
+            
+            Zu den Schönheitsreparaturen gehören: das Tapezieren, Anstreichen oder Kalken der Wände 
+            und Decken, das Streichen der Fußböden, Heizkörper einschließlich Heizrohre, der Innentüren 
+            sowie der Fenster und Außentüren von innen.
+        </div>
+<div class="instruction">
+            [MONATE] = <span class="field">B5 → SR_Mietfreiheit_Monate</span><br/>
+            Insert as integer (e.g., "2")
+        </div>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- § 14 KLEINREPARATUREN -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 14: Kleinreparaturen (Minor Repairs)</div>
+<div class="german">
+<strong>§ 14 Kleinreparaturen</strong><br/><br/>
+        
+        (1) Der Mieter ist verpflichtet, die Kosten für Kleinreparaturen an allen Teilen des 
+        Mietgegenstandes tragen, die seinem häufigen Zugriff ausgesetzt sind.<br/><br/>
+        
+        (2) Die Kostentragungspflicht ist für die einzelne Reparatur auf 
+        <span class="placeholder">[BETRAG_JE]</span> (inklusive Umsatzsteuer) begrenzt. 
+        Außerdem ist die Kostentragungspflicht für alle Kleinreparaturen im Kalenderjahr auf 
+        <span class="placeholder">[OBERGRENZE]</span> begrenzt.
+    </div>
+<div class="instruction">
+<div class="instruction-title">Data &amp; Calculation:</div>
+<strong>[BETRAG_JE]</strong> = <span class="field">B5 → Kleinrep_Je_Vorgang</span><br/>
+        Format: "100 €" or "110 €" or "120 €"<br/><br/>
+<strong>[OBERGRENZE]</strong> = <span class="field">B5 → Kleinrep_Jahresobergrenze</span><br/><br/>
+<strong>IF value contains "%"</strong> (e.g., "7 % Jahresmiete"):<br/>
+        • Extract percentage (7)<br/>
+        • Calculate: <span class="field">A5 → Grundmiete_EUR</span> × 12 × (percentage/100)<br/>
+        • Example: 1,450 × 12 × 0.07 = 1,218<br/>
+        • Insert: "7 % der jährlichen Nettomiete (1.218,00 EUR)"<br/><br/>
+<strong>IF fixed amount</strong> (e.g., "500 EUR"):<br/>
+        • Insert directly: "500,00 EUR"
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 15-19 STANDARD SECTIONS -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 15-17: Beschädigung, Sorgfaltspflichten, Pfandrecht</div>
+<div class="german">
+<strong>§ 15 Beschädigung des Mietgegenstands</strong><br/><br/>
+        
+        Der Mieter hat jeden im oder am Mietgegenstand entstehenden Schaden unverzüglich dem 
+        Vermieter anzuzeigen. [...]<br/><br/>
+<strong>§ 16 Sorgfaltspflichten des Mieters</strong><br/><br/>
+        
+        Der Mieter ist verpflichtet, dafür Sorge zu tragen, dass der Vermieter oder dessen 
+        Beauftragte in den Fällen des § 19 auch tatsächlich Zutritt zum Mietgegenstand erhalten. [...]<br/><br/>
+<strong>§ 17 Pfandrecht</strong><br/><br/>
+        
+        Der Mieter erklärt, dass die bei Einzug in den Mietgegenstand eingebrachten Gegenstände 
+        sein Eigentum, frei von Rechten Dritter sind und er dafür mit seinem Pfandrecht haftet.
+    </div>
+<div class="success">
+        ✓ Standard paragraphs - No placeholders - Always included
+    </div>
+</div>
+<div class="section">
+<div class="section-title">§ 18-19: Erhaltung, Betreten</div>
+<div class="german">
+<strong>§ 18 Erhaltungs- und Modernisierungsmaßnahmen durch den Vermieter</strong><br/><br/>
+        
+        Für Erhaltungs- und Modernisierungsmaßnahmen des Vermieters gelten §§ 555a ff BGB. [...]<br/><br/>
+<strong>§ 19 Betreten des Mietgegenstands</strong><br/><br/>
+        
+        (1) Der Mieter ist verpflichtet, zum ordnungsgemäßen Ablesen und Austausch von 
+        Verbrauchserfassungsgeräten den Zutritt zum Mietgegenstand zu gestatten. [...]<br/><br/>
+        
+        (2) Bei Gefahr in Verzug sind der Vermieter, ein von ihm Beauftragter oder beide berechtigt, 
+        den Mietgegenstand zur Feststellung und Beseitigung der Gefahrenquelle zu betreten. [...]<br/><br/>
+        
+        (3) Ist das Mietverhältnis gekündigt oder will der Vermieter den Mietgegenstand bzw. das 
+        Grundstück verkaufen, sind die in vorgenannten Absätzen genannten Personen berechtigt, 
+        Besichtigungen mit Interessenten durchzuführen. [...]
+    </div>
+<div class="success">
+        ✓ Standard paragraphs - No placeholders - Always included
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 20 BEENDIGUNG -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 20: Beendigung des Mietverhältnisses</div>
+<div class="conditional">
+<div class="conditional-title">🔀 CHOOSE ONE OF TWO VARIANTS:</div>
+        Source: <span class="field">B5 → Endrueckgabe_Regel</span>
+<div class="variant">
+<div class="variant-title">VARIANT A: Standard</div>
+<div class="condition">IF = "vertragsgemäß/sauber"</div>
+<div class="german">
+<strong>§ 20 Beendigung des Mietverhältnisses</strong><br/><br/>
+                
+                (1) Bei Beendigung des Mietverhältnisses hat der Mieter den Mietgegenstand in sauberem und 
+                vertragsgemäßem Zustand (vgl. §§ 13 - 17) zurückzugeben.
+            </div>
+</div>
+<div class="variant">
+<div class="variant-title">VARIANT B: With Additional Final Work</div>
+<div class="condition">IF = "zusätzliche Endarbeiten"</div>
+<div class="german">
+<strong>§ 20 Beendigung des Mietverhältnisses</strong><br/><br/>
+                
+                (1) Bei Beendigung des Mietverhältnisses hat der Mieter den Mietgegenstand in sauberem und 
+                vertragsgemäßem Zustand (vgl. §§ 13 - 17) zurückzugeben und folgende Endarbeiten durchzuführen:<br/><br/>
+<span class="placeholder">[ENDARBEITEN_LISTE]</span>
+</div>
+<div class="warning">
+</div>
+</div>
+</div>
+<div class="german">
+        (2) Er hat alle Schlüssel, von ihm selbst beschaffte, zurückzugeben.<br/><br/>
+        
+        (3) Er hat dem Vermieter bei Auszug aus der Wohnung – auch wenn dieser vor Beendigung des 
+        Mietverhältnisses erfolgt – unverzüglich seine neue Anschrift mitzuteilen.
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- § 21-23 FINAL SECTIONS -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">§ 21: Personenmehrheit als Mieter / Vollmacht</div>
+<div class="german">
+<strong>§ 21 Personenmehrheit als Mieter / Vollmacht</strong><br/><br/>
+        
+        (1) Sind mehrere Personen Mieter, haften diese für alle Verpflichtungen aus dem 
+        Mietverhältnis als Gesamtschuldner.<br/><br/>
+        
+        (2) Willenserklärungen müssen von oder gegenüber allen Mietern abgegeben werden. 
+        Hierzu bevollmächtigen sich die Mieter in jedem Fall gegenseitig [...]
+    </div>
+<div class="success">
+        ✓ Standard text - No placeholders
+    </div>
+</div>
+<div class="section">
+<div class="section-title">§ 22: Datenverarbeitung / Energieausweis / Anlagen</div>
+<div class="german">
+<strong>§ 22 Datenverarbeitung</strong><br/><br/>
+        
+        (1) Die Angaben nach Art. 13 DSGVO ergeben sich aus Anlage <span class="placeholder">MV.[X]</span> 
+        des Mietvertrages.<br/><br/>
+        
+        (2) Der Energieausweis liegt dem Mietvertrag als Anlage <span class="placeholder">MV.[Y]</span> bei. 
+        Er dient lediglich der Information. Er wird weder Bestandteil des Mietvertrages noch Grundlage 
+        für Gewährleistungsansprüche.
+    </div>
+<div class="instruction">
+<div class="instruction-title">🔢 Dynamic Annex Numbering:</div>
+        
+        Source: <span class="field">B7 → Anlagenliste[]</span><br/><br/>
+<strong>Process:</strong><br/>
+        1. Get array of annexes from lawyer form<br/>
+        2. Number sequentially: MV.1, MV.2, MV.3, etc.<br/>
+        3. Find "DSGVO-Informationsblatt" → that number is [X]<br/>
+        4. Find "Energieausweis" → that number is [Y]<br/>
+        5. Update § 22 references accordingly<br/><br/>
+<strong>Example:</strong><br/>
+        If list = ["Grundriss", "DSGVO-Informationsblatt", "Energieausweis", "Hausordnung"]<br/>
+        Then: MV.2 for DSGVO ([X]=2), MV.3 for Energieausweis ([Y]=3)
+    </div>
+<div class="german" style="margin-top: 15px;">
+<strong>Anlagen zum Mietvertrag:</strong><br/><br/>
+<span class="placeholder">[COMPLETE_ANNEX_LIST]</span>
+</div>
+<div class="instruction">
+        Display complete list from <span class="field">B7 → Anlagenliste[]</span><br/>
+        Format as:<br/>
+        Anlage MV.1: [First item]<br/>
+        Anlage MV.2: [Second item]<br/>
+        etc.
+    </div>
+</div>
+<div class="section">
+<div class="section-title">§ 23: Wirksamkeit der Vertragsbestimmungen</div>
+<div class="german">
+<strong>§ 23 Wirksamkeit der Vertragsbestimmungen</strong><br/><br/>
+        
+        (1) Mündliche Nebenabreden sind nicht getroffen.<br/><br/>
+        
+        (2) Ist eine oder mehrere Bestimmungen dieses Vertrages unwirksam, bleibt der Vertrag 
+        im Übrigen wirksam.
+    </div>
+<div class="success">
+        ✓ Salvatorische Klausel - Standard text - No placeholders
+    </div>
+</div>
+<!-- ========================================= -->
+<!-- SIGNATURE BLOCK -->
+<!-- ========================================= -->
+<div class="section">
+<div class="section-title">UNTERSCHRIFTEN: Signatures</div>
+<div class="german">
+<span class="placeholder">[ORT]</span>, <span class="placeholder">[DATUM]</span><br/><br/><br/>
+        
+        _________________________________<br/>
+<strong>Unterschrift Vermieter</strong><br/>
+<span class="placeholder">[LANDLORD_NAME]</span><br/>
+<span class="placeholder">[CONDITIONAL: vertreten durch [LANDLORD_REPRESENTATIVE]]</span><br/><br/><br/>
+        
+        _________________________________<br/>
+<strong>Unterschrift Mieter</strong><br/>
+<span class="placeholder">[TENANT_NAME]</span><br/>
+<span class="placeholder">[CONDITIONAL: vertreten durch [TENANT_REPRESENTATIVE]]</span>
+</div>
+<div class="instruction">
+<div class="instruction-title">Data Mapping:</div>
+        
+        [ORT] = City name (can extract from address)<br/>
+        [DATUM] = <span class="field">B7 → Bearbeitungsdatum</span> (Format: DD.MM.YYYY)<br/><br/>
+        
+        [LANDLORD_NAME] and [TENANT_NAME] use same role-dependent logic as header:<br/>
+        • IF <span class="field">A1 → Rolle</span> = "Vermieter": Own data → Landlord, Counter-party → Tenant<br/>
+        • IF <span class="field">A1 → Rolle</span> = "Mieter": Own data → Tenant, Counter-party → Landlord<br/><br/>
+<strong>🆕 Representation Lines (Conditional):</strong><br/><br/>
+        
+        FOR LANDLORD:<br/>
+        • <strong>IF</strong> landlord data has <span class="field">Wird_vertreten</span> = "Ja":<br/>
+          → Add line: "vertreten durch: [<span class="field">Vertreten_durch</span>]"<br/>
+          → Insert BELOW landlord name<br/><br/>
+        
+        FOR TENANT:<br/>
+        • <strong>IF</strong> tenant data has <span class="field">Wird_vertreten</span> = "Ja":<br/>
+          → Add line: "vertreten durch: [<span class="field">Vertreten_durch</span>]"<br/>
+          → Insert BELOW tenant name
+    </div>
+<div class="annotations">
+<strong>🆕 NEW: Vollmacht Note (Optional):</strong><br/>
+        If <span class="field">Vollmacht_vorhanden</span> = "Nein" (separate authorization), consider adding footnote:<br/>
+        "Die Vollmacht wird separat erteilt."<br/><br/>
+<strong>Signing Logic:</strong>
+<ul>
+<li>If represented: Representative signs, not the party directly</li>
+<li>Name line shows both party name and representative</li>
+<li>Signature goes above representative name</li>
+</ul>
+</div>
+</div>
+<!-- ========================================= -->
+<!-- FINAL SUMMARY -->
+<!-- ========================================= -->
+<div class="section" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+<h2 style="margin-top: 0; color: white;">✅ Complete Contract Template - All Sections Covered</h2>
+<p style="font-size: 16px; opacity: 0.95; margin: 15px 0;">
+        This is the COMPLETE annotated contract from beginning to end with every section, 
+        every placeholder, and every conditional clause documented.
+    </p>
+<div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 8px; margin: 20px 0;">
+<strong style="font-size: 18px;">📋 What's Included:</strong><br/><br/>
+        
+        ✅ Header (role-dependent party assignment)<br/>
+        ✅ Präambel (conditional on new construction)<br/>
+        ✅ § 1 Mietgegenstand (+ WEG conditional)<br/>
+        ✅ § 2 Zustand (+ noise clause options)<br/>
+        ✅ § 3 Mietzeit (+ termination waiver)<br/>
+        ✅ § 4 Kündigung (standard)<br/>
+        ✅ § 5 Rent Table (6 rows with calculations)<br/>
+        ✅ § 6 Rent Adjustments (3 options) + Mietpreisbremse (4-stage logic)<br/>
+        ✅ § 7 Operating Costs (+ additional positions)<br/>
+        ✅ § 8 Security Deposit (calculation)<br/>
+        ✅ § 9 Subletting (3 variants)<br/>
+        ✅ § 10 Pet Keeping (3 variants + special agreement)<br/>
+        ✅ § 11-12 Liability + Alterations (standard)<br/>
+        ✅ § 13 Cosmetic Repairs (5 complete variants with decision tree) ⭐<br/>
+        ✅ § 14 Minor Repairs (with percentage calculation)<br/>
+        ✅ § 15-19 Standard sections (damage, care, lien, maintenance, access)<br/>
+        ✅ § 20 End of Tenancy (2 variants)<br/>
+        ✅ § 21-23 Multiple tenants, data protection, severability<br/>
+        ✅ Signature Block (role-dependent names)<br/>
+</div>
+<div style="background: rgba(255,255,255,0.15); padding: 20px; border-radius: 8px;">
+<strong style="font-size: 18px;">🎯 Everything a Developer Needs:</strong><br/><br/>
+        
+        • Every placeholder mapped to source field<br/>
+        • All conditional sections with decision logic<br/>
+        • All calculations specified<br/>
+        • Format requirements for German text<br/>
+        • Role-dependent data assignment<br/>
+        • Complete Schönheitsreparaturen decision tree<br/>
+        • Complete Mietpreisbremse 4-stage logic<br/>
+</div>
+</div>
+</body>
+</html>

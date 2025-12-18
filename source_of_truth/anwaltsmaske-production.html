@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="de">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Anwaltsmaske - Production Version
+  </title>
+  <style>
+   * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f5f3ff 0%, #faf5ff 100%);
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+        }
+        h1 {
+            color: #6b21a8;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #7c3aed;
+            font-size: 16px;
+        }
+        .import-section {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+            text-align: center;
+        }
+        .upload-zone {
+            border: 3px dashed #c084fc;
+            padding: 50px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .upload-zone:hover {
+            border-color: #a855f7;
+            background: #faf5ff;
+        }
+        .progress-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+        }
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .step {
+            text-align: center;
+            flex: 1;
+        }
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #e9d5ff;
+            color: #7c3aed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: bold;
+        }
+        .step.active .step-icon {
+            background: #a855f7;
+            color: white;
+        }
+        .step.completed .step-icon {
+            background: #10b981;
+            color: white;
+        }
+        .step-title {
+            font-size: 12px;
+            color: #9333ea;
+        }
+        .step.active .step-title {
+            font-weight: 600;
+        }
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #6b21a8;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9d5ff;
+        }
+        .readonly-data {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .readonly-title {
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        .readonly-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+        }
+        .readonly-label {
+            color: #64748b;
+        }
+        .readonly-value {
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .field {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .required {
+            color: #ef4444;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #a855f7;
+        }
+        .warning-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .info-box {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .help-text {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        .btn-primary {
+            background: #a855f7;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #9333ea;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .summary-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .summary-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .summary-value {
+            font-weight: 500;
+            color: #1e293b;
+            font-size: 14px;
+        }
+  </style>
+ </head>
+ <body>
+  <div class="header">
+   <h1>
+    Mietvertragserfassung
+   </h1>
+   <p class="subtitle">
+    Anwaltsmaske – Juristische Entscheidungen &amp; Klauselwahl
+   </p>
+  </div>
+  <!-- IMPORT SCREEN -->
+  <div class="import-section">
+   <h2 style="color: #6b21a8; margin-bottom: 20px; font-size: 24px;">
+    Mandantendaten importieren
+   </h2>
+   <div class="upload-zone">
+    <p style="font-size: 48px; margin-bottom: 15px;">
+     📤
+    </p>
+    <h3 style="color: #6b21a8; margin-bottom: 10px;">
+     JSON-Datei der Mandantenmaske hochladen
+    </h3>
+    <p style="color: #7c3aed;">
+     Laden Sie die JSON-Datei hoch, die aus der Mandantenmaske exportiert wurde.
+    </p>
+    <button class="btn-primary" style="margin: 20px auto 0;">
+     Datei auswählen
+    </button>
+   </div>
+  </div>
+  <!-- STEP 0: MANDANTENDATEN (READ-ONLY) -->
+  <div class="progress-bar">
+   <div class="steps">
+    <div class="step active">
+     <div class="step-icon">
+      📄
+     </div>
+     <div class="step-title">
+      Mandantendaten
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      1
+     </div>
+     <div class="step-title">
+      Vertragsgestaltung
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      2
+     </div>
+     <div class="step-title">
+      Miete &amp; BK
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      3
+     </div>
+     <div class="step-title">
+      Nutzung
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      4
+     </div>
+     <div class="step-title">
+      Instandhaltung
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      5
+     </div>
+     <div class="step-title">
+      Haftung
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      6
+     </div>
+     <div class="step-title">
+      Anlagen
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      ✓
+     </div>
+     <div class="step-title">
+      Zusammenfassung
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="form-section">
+   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <h2 class="section-title" style="margin: 0;">
+     Mandantendaten prüfen und ggf. korrigieren
+    </h2>
+    <button style="font-size: 13px; padding: 6px 12px; background: #e2e8f0; color: #475569;">
+     Andere Datei laden
+    </button>
+   </div>
+   <div class="info-box">
+    <p style="font-size: 14px;">
+     <strong>
+      Bitte prüfen Sie die importierten Daten.
+     </strong>
+     Sie können Fehler direkt korrigieren – 
+            die korrigierten Werte werden für die Vertragserstellung verwendet.
+    </p>
+   </div>
+   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+    <div>
+     <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 15px; color: #6b21a8;">
+      Rolle &amp; Kontakt
+     </h3>
+     <div class="field">
+      <label>
+       Rolle
+      </label>
+      <select name="ro_rolle">
+       <option selected="">
+        Vermieter
+       </option>
+       <option>
+        Mieter
+       </option>
+      </select>
+     </div>
+     <div class="field">
+      <label>
+       Name / Firma
+      </label>
+      <input name="ro_name" type="text" value="Max Mustermann"/>
+     </div>
+     <div class="field">
+      <label>
+       E-Mail
+      </label>
+      <input name="ro_email" type="email" value="max@beispiel.de"/>
+     </div>
+     <div class="field">
+      <label>
+       Telefon
+      </label>
+      <input name="ro_telefon" type="tel" value="+49 123 456789"/>
+     </div>
+    </div>
+    <div>
+     <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 15px; color: #6b21a8;">
+      Mietobjekt
+     </h3>
+     <div class="field">
+      <label>
+       Objektadresse
+      </label>
+      <textarea name="ro_objektadresse" rows="2">Musterstraße 42, 12345 Musterstadt</textarea>
+     </div>
+     <div class="field">
+      <label>
+       Wohnungsart
+      </label>
+      <select name="ro_wohnungsart">
+       <option selected="">
+        Eigentumswohnung
+       </option>
+       <option>
+        Einfamilienhaus
+       </option>
+       <option>
+        Doppelhaushälfte
+       </option>
+      </select>
+     </div>
+     <div class="field">
+      <label>
+       Wohnfläche (m²)
+      </label>
+      <input name="ro_wohnflaeche" type="number" value="75.50"/>
+     </div>
+    </div>
+   </div>
+   <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+    <div>
+     <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 15px; color: #6b21a8;">
+      Mietzeit
+     </h3>
+     <div class="field">
+      <label>
+       Mietbeginn
+      </label>
+      <input name="ro_mietbeginn" type="date" value="2024-04-01"/>
+     </div>
+     <div class="field">
+      <label>
+       Vertragsart
+      </label>
+      <select name="ro_vertragsart">
+       <option selected="">
+        unbefristet
+       </option>
+       <option>
+        befristet
+       </option>
+      </select>
+     </div>
+    </div>
+    <div>
+     <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 15px; color: #6b21a8;">
+      Miete
+     </h3>
+     <div class="field">
+      <label>
+       Grundmiete (EUR)
+      </label>
+      <input name="ro_grundmiete" type="number" value="1450.00"/>
+     </div>
+     <div class="field">
+      <label style="font-weight: 600; color: #059669;">
+       Gesamtmiete (EUR)
+      </label>
+      <input name="ro_gesamtmiete" style="border: 2px solid #10b981; background: #f0fdf4; font-weight: 600;" type="number" value="1890.00"/>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- STEP 1: VERTRAGSGESTALTUNG -->
+  <div style="margin-top: 40px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Vertragsgestaltung
+    </h2>
+    <div class="field">
+     <label>
+      Vertragsart final
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="vertragsart" type="radio" value="unbefristet"/>
+       <span>
+        Unbefristet
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="vertragsart" type="radio" value="befristet"/>
+       <span>
+        Befristet (mit § 575-Grund aus Mandantendaten)
+       </span>
+      </label>
+     </div>
+     <p class="help-text">
+      Aus Mandantendaten übernommen, kann hier angepasst werden
+     </p>
+    </div>
+    <div class="field">
+     <label>
+      Kündigungsverzicht (Jahre)
+     </label>
+     <input name="kuendigungsverzicht" placeholder="0-4 Jahre" type="number" value="0"/>
+     <p class="help-text">
+      0 = kein Verzicht
+     </p>
+    </div>
+   </div>
+  </div>
+  <!-- STEP 2: MIETE & BK -->
+  <div style="margin-top: 40px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Miethöhe &amp; Betriebskosten
+    </h2>
+    <div class="field">
+     <label>
+      Mietanpassung
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="mietanpassung" type="radio" value="normalfall"/>
+       <span>
+        Normalfall (Gesetzliche Regelungen § 558 BGB)
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="mietanpassung" type="radio" value="index"/>
+       <span>
+        Indexmiete (§ 557b BGB)
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="mietanpassung" type="radio" value="staffel"/>
+       <span>
+        Staffelmiete
+       </span>
+      </label>
+     </div>
+     <p class="help-text">
+      Indexmiete und Staffelmiete schließen sich gegenseitig aus
+     </p>
+    </div>
+    <!-- MIETPREISBREMSE LOGIC -->
+    <!-- Only shown if Bezugsfertig_seit < 01.10.2014 -->
+    <div id="mietpreisbremse-section" style="background: #fef2f2; padding: 20px; border-radius: 8px; border-left: 4px solid #dc2626; margin: 20px 0;">
+     <h3 style="color: #991b1b; margin-bottom: 15px;">
+      ⚠️ Mietpreisbremsen-Prüfung
+     </h3>
+     <p style="font-size: 14px; color: #7f1d1d; margin-bottom: 20px;">
+      Das Objekt wurde vor dem 01.10.2014 bezugsfertig. Bitte prüfen Sie die Mietpreisbremse.
+     </p>
+     <!-- STUFE 1: Status Wohnung -->
+     <div class="field">
+      <label>
+       Stufe 1: Status der Wohnung
+       <span class="required">
+        *
+       </span>
+      </label>
+      <div class="radio-group">
+       <label class="radio-option">
+        <input name="mpb_status" type="radio" value="neubau"/>
+        <span>
+         Neubau (nie zuvor vermietet)
+        </span>
+       </label>
+       <label class="radio-option">
+        <input name="mpb_status" type="radio" value="bereits_vermietet"/>
+        <span>
+         Bereits vermietet
+        </span>
+       </label>
+      </div>
+     </div>
+     <!-- STUFE 2: Vormietverhältnis (nur wenn "bereits vermietet") -->
+     <div id="mpb-stufe2" style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px;">
+      <div class="field">
+       <label>
+        Stufe 2: Vormietverhältnis begann...
+        <span class="required">
+         *
+        </span>
+       </label>
+       <div class="radio-group">
+        <label class="radio-option">
+         <input name="mpb_vormiet" type="radio" value="vor_juni_2015"/>
+         <span>
+          VOR 01.06.2015
+         </span>
+        </label>
+        <label class="radio-option">
+         <input name="mpb_vormiet" type="radio" value="nach_juni_2015"/>
+         <span>
+          NACH 01.06.2015
+         </span>
+        </label>
+       </div>
+      </div>
+     </div>
+     <!-- STUFE 3: Miete innerhalb Grenze? -->
+     <div id="mpb-stufe3" style="margin-top: 20px; padding: 15px; background: white; border-radius: 8px;">
+      <div class="field">
+       <label>
+        Stufe 3: Liegt die Miete innerhalb der Mietpreisbremse?
+        <span class="required">
+         *
+        </span>
+       </label>
+       <div class="radio-group">
+        <label class="radio-option">
+         <input name="mpb_grenze" type="radio" value="ja"/>
+         <span>
+          Ja, unter der Grenze (max. 110% ortsübliche Vergleichsmiete)
+         </span>
+        </label>
+        <label class="radio-option">
+         <input name="mpb_grenze" type="radio" value="nein"/>
+         <span>
+          Nein, über der Grenze
+         </span>
+        </label>
+       </div>
+      </div>
+     </div>
+     <!-- STUFE 4: Begründung (nur wenn "über Grenze") -->
+     <div id="mpb-stufe4" style="margin-top: 20px; padding: 15px; background: #fef3c7; border-radius: 8px;">
+      <h4 style="color: #92400e; margin-bottom: 10px;">
+       Stufe 4: Begründung für Überschreitung
+      </h4>
+      <div class="field">
+       <label class="checkbox-option">
+        <input name="mpb_grund_vormiete" type="checkbox"/>
+        <span>
+         Vormiete war höher
+        </span>
+       </label>
+      </div>
+      <div class="field" style="margin-left: 25px;">
+       <label>
+        Vormiete (EUR/Monat)
+       </label>
+       <input name="mpb_vormiete_betrag" placeholder="z.B. 1650" type="number"/>
+      </div>
+      <div class="field">
+       <label class="checkbox-option">
+        <input name="mpb_grund_modernisierung" type="checkbox"/>
+        <span>
+         Modernisierung durchgeführt
+        </span>
+       </label>
+      </div>
+      <div class="field" style="margin-left: 25px;">
+       <label>
+        Details zur Modernisierung
+       </label>
+       <textarea name="mpb_modern" placeholder="Beschreibung der Modernisierungsmaßnahmen und Kosten..." rows="3"></textarea>
+      </div>
+      <div class="field">
+       <label class="checkbox-option">
+        <input name="mpb_grund_erstmiete" type="checkbox"/>
+        <span>
+         Erstmiete nach umfassender Modernisierung
+        </span>
+       </label>
+      </div>
+      <div class="field" style="margin-left: 25px;">
+       <label>
+        Details zur Erstmiete
+       </label>
+       <textarea name="mpb_modern_text" placeholder="Datum und Umfang der Modernisierung..." rows="3"></textarea>
+      </div>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Fälligkeit / Mahnsystem
+      <span class="required">
+       *
+      </span>
+     </label>
+     <select name="faelligkeit">
+      <option value="">
+       Bitte wählen...
+      </option>
+      <option>
+       Spätestens 3. Werktag des Monats
+      </option>
+      <option>
+       Abweichende Regelung
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      Zusatz-BK-Positionen
+     </label>
+     <div class="checkbox-group">
+      <label class="checkbox-option">
+       <input name="zusatz_bk" type="checkbox"/>
+       <span>
+        Objektschutz
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="zusatz_bk" type="checkbox"/>
+       <span>
+        Dachrinnenreinigung
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="zusatz_bk" type="checkbox"/>
+       <span>
+        Beleuchtung allgemeiner Flächen
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="zusatz_bk" type="checkbox"/>
+       <span>
+        Wartung technischer Anlagen
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="zusatz_bk" type="checkbox"/>
+       <span>
+        Gartenpflege
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="zusatz_bk" type="checkbox"/>
+       <span>
+        Hausmeister
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      WEG-Verweis / Schlüssel (nur bei ETW)
+     </label>
+     <textarea name="weg_text" placeholder="z.B. Teilungserklärung § ...; MEA lt. Mandantendaten" rows="2"></textarea>
+    </div>
+    <div class="field">
+     <label>
+      Heiz-/WW als eigener Paragraph?
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="heizww" type="radio" value="ja"/>
+       <span>
+        Ja - separater § für Heiz-/Warmwasserkosten
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="heizww" type="radio" value="nein"/>
+       <span>
+        Nein - zusammen mit BK
+       </span>
+      </label>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- STEP 4: INSTANDHALTUNG -->
+  <div style="margin-top: 40px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Instandhaltung / SR / Kleinreparaturen
+    </h2>
+    <div class="warning-box">
+     <strong>
+      ⚠️ Schönheitsreparaturen - Abhängig vom Zustand
+     </strong>
+     <p style="font-size: 13px; margin-top: 6px;">
+      Die Regelung wird automatisch basierend auf dem "Zustand bei Übergabe" aus den Mandantendaten gewählt.
+     </p>
+    </div>
+    <!-- FALL 1: Renovierte Wohnung -->
+    <div id="sr-case-1" style="background: #f0fdf4; padding: 15px; border-radius: 8px; border-left: 4px solid #16a34a; margin: 15px 0;">
+     <h3 style="color: #166534; margin-bottom: 10px;">
+      ✓ Fall 1: Renovierte/Neue Wohnung
+     </h3>
+     <p style="font-size: 14px; color: #166534; margin-bottom: 10px;">
+      Zustand: "renoviert" oder "neu erstellt" → Mieter trägt Schönheitsreparaturen
+     </p>
+     <div class="field">
+      <label class="checkbox-option">
+       <input checked="" disabled="" name="sr_renoviert" type="checkbox"/>
+       <span>
+        Mieter trägt SR (feste Klausel wird eingefügt)
+       </span>
+      </label>
+     </div>
+    </div>
+    <!-- FALL 2A: Unrenoviert OHNE Ausgleich -->
+    <div id="sr-case-2a" style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 15px 0;">
+     <h3 style="color: #92400e; margin-bottom: 10px;">
+      Fall 2a: Unrenoviert - Keine SR-Pflicht
+     </h3>
+     <p style="font-size: 14px; color: #92400e; margin-bottom: 10px;">
+      Zustand: "gebraucht/vertragsgemäß" → Keine SR, ABER Beteiligung bei Verschlechterung
+     </p>
+     <div class="field">
+      <label class="radio-option">
+       <input name="sr_model" type="radio" value="case2a"/>
+       <span>
+        Keine SR-Pflicht + Hälftige Beteiligung bei erheblicher Verschlechterung
+       </span>
+      </label>
+     </div>
+    </div>
+    <!-- FALL 2B: Unrenoviert MIT Ausgleich -->
+    <div id="sr-case-2b" style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 15px 0;">
+     <h3 style="color: #92400e; margin-bottom: 10px;">
+      Fall 2b: Unrenoviert - Renovierung gegen Ausgleich
+     </h3>
+     <p style="font-size: 14px; color: #92400e; margin-bottom: 15px;">
+      Zustand: "gebraucht/vertragsgemäß" → Mieter renoviert gegen Kompensation
+     </p>
+     <div class="field">
+      <label class="radio-option">
+       <input name="sr_model" type="radio" value="case2b"/>
+       <span>
+        Mieter renoviert gegen Ausgleich (wählen Sie eine Option):
+       </span>
+      </label>
+     </div>
+     <div style="margin-left: 25px; margin-top: 15px;">
+      <div class="field">
+       <label class="radio-option">
+        <input name="sr_ausgleich" type="radio" value="kostenzuschuss"/>
+        <span>
+         Option i) Einmaliger Kostenzuschuss vom Vermieter
+        </span>
+       </label>
+      </div>
+      <div class="field" style="margin-left: 25px;">
+       <label>
+        Betrag (EUR)
+       </label>
+       <input name="sr_zuschuss_betrag" placeholder="z.B. 2500" type="number"/>
+       <p class="help-text">
+        Höhe des Zuschusses für Renovierungskosten
+       </p>
+      </div>
+      <div class="field">
+       <label class="radio-option">
+        <input name="sr_ausgleich" type="radio" value="mietfreiheit"/>
+        <span>
+         Option ii) Mietfreiheit für X Monate
+        </span>
+       </label>
+      </div>
+      <div class="field" style="margin-left: 25px;">
+       <label>
+        Anzahl Monate
+       </label>
+       <input max="6" min="1" name="sr_mietfrei_monate" placeholder="z.B. 2" type="number"/>
+       <p class="help-text">
+        Dauer der Mietfreiheit
+       </p>
+      </div>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Kleinreparaturen - je Vorgang
+      <span class="required">
+       *
+      </span>
+     </label>
+     <select name="kleinrep_je">
+      <option value="">
+       Bitte wählen...
+      </option>
+      <option>
+       100 EUR
+      </option>
+      <option>
+       110 EUR
+      </option>
+      <option>
+       120 EUR
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      Kleinreparaturen - Jahresobergrenze
+      <span class="required">
+       *
+      </span>
+     </label>
+     <select name="kleinrep_jahr">
+      <option value="">
+       Bitte wählen...
+      </option>
+      <option>
+       7 % der Jahresmiete
+      </option>
+      <option>
+       500 EUR fest
+      </option>
+      <option>
+       8 % der Jahresmiete
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      Endrückgabe-Regel
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="endrueck" type="radio" value="vertrag"/>
+       <span>
+        Nur vertragsgemäß/sauber
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="endrueck" type="radio" value="zusatz"/>
+       <span>
+        Zusätzliche Endarbeiten (sofern wirksam)
+       </span>
+      </label>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- STEP 6: ANLAGEN & PRÜFUNG -->
+  <div style="margin-top: 40px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Anlagen &amp; Prüfung
+    </h2>
+    <div class="field">
+     <label>
+      Energieausweis
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="ea" type="radio" value="info"/>
+       <span>
+        Nur informativ
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="ea" type="radio" value="pflicht"/>
+       <span>
+        Kenntnisnahme verpflichtend
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Anlagenliste final
+      <span class="required">
+       *
+      </span>
+     </label>
+     <p class="help-text" style="margin-bottom: 10px;">
+      Mindestens Grundriss und Übergabeprotokoll sind erforderlich
+     </p>
+     <div class="checkbox-group">
+      <label class="checkbox-option">
+       <input checked="" name="anlagen" type="checkbox"/>
+       <span>
+        Grundriss
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input checked="" name="anlagen" type="checkbox"/>
+       <span>
+        Übergabeprotokoll
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="anlagen" type="checkbox"/>
+       <span>
+        WEG-Abrechnung
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="anlagen" type="checkbox"/>
+       <span>
+        Energieausweis
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="anlagen" type="checkbox"/>
+       <span>
+        Hausordnung
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="anlagen" type="checkbox"/>
+       <span>
+        Betriebskostenverordnung
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="info-box" style="margin-top: 30px;">
+     <strong style="display: block; margin-bottom: 8px;">
+      Prüf- und Redaktionsvermerke
+     </strong>
+    </div>
+   </div>
+  </div>
+  <!-- STEP 7: ZUSAMMENFASSUNG -->
+  <div style="margin-top: 40px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Zusammenfassung
+    </h2>
+    <div class="info-box" style="background: #f0fdf4; border-color: #10b981;">
+     <p style="font-weight: 600; margin-bottom: 8px;">
+      Finalisierung:
+     </p>
+     <p>
+      Alle juristischen Entscheidungen sind getroffen und die Mandantendaten wurden geprüft. 
+            Der Vertrag kann nun automatisch erstellt werden.
+     </p>
+    </div>
+    <div class="summary-section">
+     <div class="summary-title">
+      Vertragsgestaltung
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Vertragsart:
+      </span>
+      <span class="summary-value">
+       unbefristet
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Kündigungsverzicht:
+      </span>
+      <span class="summary-value">
+       0 Jahre
+      </span>
+     </div>
+    </div>
+    <div class="summary-section">
+     <div class="summary-title">
+      Miethöhe &amp; BK
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Indexmiete:
+      </span>
+      <span class="summary-value">
+       Nein
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Staffelmiete:
+      </span>
+      <span class="summary-value">
+       Nein
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Fälligkeit:
+      </span>
+      <span class="summary-value">
+       Spätestens 3. Werktag
+      </span>
+     </div>
+    </div>
+    <div class="summary-section">
+     <div class="summary-title">
+      Instandhaltung
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       SR-Modell:
+      </span>
+      <span class="summary-value">
+       Pauschal (ohne Fristen)
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Kleinrep. je Vorgang:
+      </span>
+      <span class="summary-value">
+       110 EUR
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Jahresobergrenze:
+      </span>
+      <span class="summary-value">
+       7 % der Jahresmiete
+      </span>
+     </div>
+    </div>
+    <div class="summary-section">
+     <div class="summary-title">
+      Anlagen &amp; Prüfung
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Anlagen:
+      </span>
+      <span class="summary-value">
+       Grundriss, Übergabeprotokoll, Energieausweis
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Bearbeiter:
+      </span>
+      <span class="summary-value">
+       RAin Dr. Müller
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Freigabe:
+      </span>
+      <span class="summary-value">
+       Ja
+      </span>
+     </div>
+    </div>
+    <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin-top: 30px;">
+     <p style="font-weight: 600; color: #065f46; margin-bottom: 15px; font-size: 16px;">
+      ✓ Alle Angaben vollständig
+     </p>
+     <button class="btn-success" style="width: 100%; justify-content: center; font-size: 18px; padding: 16px;">
+      📝 Vertrag erstellen
+     </button>
+     <p style="text-align: center; font-size: 13px; color: #047857; margin-top: 12px;">
+      Der Mietvertrag wird als DOCX-Datei generiert
+     </p>
+    </div>
+   </div>
+  </div>
+  <div class="buttons">
+   <button class="btn-secondary">
+   </button>
+  </div>
+ </body>
+</html>

@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="de">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Mandantenmaske - Production Version
+  </title>
+  <style>
+   * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+            line-height: 1.6;
+        }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e293b;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #64748b;
+            font-size: 16px;
+        }
+        .progress-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .step {
+            text-align: center;
+            flex: 1;
+        }
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: bold;
+        }
+        .step.active .step-icon {
+            background: #3b82f6;
+            color: white;
+        }
+        .step.completed .step-icon {
+            background: #10b981;
+            color: white;
+        }
+        .step-title {
+            font-size: 12px;
+            color: #64748b;
+        }
+        .step.active .step-title {
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        .form-section {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .field {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 500;
+            color: #334155;
+            margin-bottom: 6px;
+            font-size: 14px;
+        }
+        .required {
+            color: #ef4444;
+        }
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        input[type="number"],
+        input[type="date"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        input[type="radio"],
+        input[type="checkbox"] {
+            margin-right: 8px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #3b82f6;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .calculated {
+            background: #d1fae5;
+            border: 2px solid #10b981;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .calculated-label {
+            font-size: 14px;
+            color: #065f46;
+            margin-bottom: 5px;
+        }
+        .calculated-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #059669;
+        }
+        .buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-secondary {
+            background: #64748b;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: #475569;
+        }
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+        }
+        .file-upload {
+            border: 2px dashed #cbd5e1;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .file-upload:hover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+        .summary-section {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .summary-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+        .summary-label {
+            color: #64748b;
+            font-size: 14px;
+        }
+        .summary-value {
+            font-weight: 500;
+            color: #1e293b;
+            font-size: 14px;
+        }
+  </style>
+ </head>
+ <body>
+  <div class="header">
+   <h1>
+    Mietvertragserfassung
+   </h1>
+   <p class="subtitle">
+    Mandantenmaske – Erfassung der faktischen Daten
+   </p>
+  </div>
+  <!-- SCHRITT 1: ROLLE & KONTAKT -->
+  <div class="progress-bar">
+   <div class="steps">
+    <div class="step active">
+     <div class="step-icon">
+      1
+     </div>
+     <div class="step-title">
+      Rolle &amp; Kontakt
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      2
+     </div>
+     <div class="step-title">
+      Mietobjekt
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      3
+     </div>
+     <div class="step-title">
+      Zustand &amp; Schlüssel
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      4
+     </div>
+     <div class="step-title">
+      Mietzeit
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      5
+     </div>
+     <div class="step-title">
+      Miete &amp; Kosten
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      6
+     </div>
+     <div class="step-title">
+      Nutzung &amp; Tiere
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      7
+     </div>
+     <div class="step-title">
+      Kaution &amp; Übergabe
+     </div>
+    </div>
+    <div class="step">
+     <div class="step-icon">
+      ✓
+     </div>
+     <div class="step-title">
+      Zusammenfassung
+     </div>
+    </div>
+   </div>
+  </div>
+  <div class="form-section">
+   <h2 class="section-title">
+    Rolle &amp; Kontaktdaten
+   </h2>
+   <div class="field">
+    <label>
+     Ihre Rolle im Mietvertrag
+     <span class="required">
+      *
+     </span>
+    </label>
+    <div class="radio-group">
+     <label class="radio-option">
+      <input name="rolle" type="radio" value="Vermieter"/>
+      <span>
+       Vermieter
+      </span>
+     </label>
+     <label class="radio-option">
+      <input name="rolle" type="radio" value="Mieter"/>
+      <span>
+       Mieter
+      </span>
+     </label>
+    </div>
+   </div>
+   <div class="info-box">
+    <strong>
+     Ihre Angaben
+    </strong>
+   </div>
+   <div class="field">
+    <label>
+     Name / Firma
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="eigene_name" placeholder="Max Mustermann bzw. Muster GmbH" type="text"/>
+   </div>
+   <div class="field">
+    <label>
+     Anschrift
+     <span class="required">
+      *
+     </span>
+    </label>
+    <textarea name="eigene_anschrift" placeholder="Musterstraße 1, 12345 Musterstadt"></textarea>
+   </div>
+   <div class="field">
+    <label>
+     E-Mail
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="eigene_email" placeholder="beispiel@email.de" type="email"/>
+   </div>
+   <div class="field">
+    <label>
+     Telefon
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="eigene_telefon" placeholder="+49 123 456789" type="tel"/>
+   </div>
+   <div class="field">
+    <label>
+     IBAN (Zahlungsempfänger)
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="eigene_iban" placeholder="DE89 3704 0044 0532 0130 00" type="text"/>
+   </div>
+   <div class="field">
+    <label>
+     Werden Sie vertreten? (z.B. durch Hausverwaltung)
+    </label>
+    <div class="radio-group">
+     <label class="radio-option">
+      <input name="wird_vertreten" type="radio" value="ja"/>
+      <span>
+       Ja
+      </span>
+     </label>
+     <label class="radio-option">
+      <input name="wird_vertreten" type="radio" value="nein"/>
+      <span>
+       Nein
+      </span>
+     </label>
+    </div>
+   </div>
+   <!-- Conditional: Show only if "Ja" selected -->
+   <div class="field" style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+    <label>
+     Vertreten durch (Name/Firma)
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="vertreten_durch" placeholder="z.B. Hausverwaltung Müller GmbH" type="text"/>
+    <p style="font-size: 13px; color: #92400e; margin-top: 6px;">
+     Name der vertretungsberechtigten Person oder Firma
+    </p>
+   </div>
+   <div class="field" style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+    <label>
+     Liegt eine Vollmacht bei?
+     <span class="required">
+      *
+     </span>
+    </label>
+    <div class="radio-group">
+     <label class="radio-option">
+      <input name="vollmacht" type="radio" value="ja"/>
+      <span>
+       Ja, liegt bei
+      </span>
+     </label>
+     <label class="radio-option">
+      <input name="vollmacht" type="radio" value="nein"/>
+      <span>
+       Nein, wurde separat erteilt
+      </span>
+     </label>
+    </div>
+   </div>
+   <div class="field">
+    <label>
+     USt-ID (optional, für Gewerbetreibende)
+    </label>
+    <input name="ust_id" placeholder="z.B. DE123456789" type="text"/>
+    <p style="font-size: 13px; color: #64748b; margin-top: 6px;">
+     Umsatzsteuer-Identifikationsnummer
+    </p>
+   </div>
+   <div class="field">
+    <label>
+     Steuernummer (optional, für Gewerbetreibende)
+    </label>
+    <input name="steuernummer" placeholder="z.B. 12/345/67890" type="text"/>
+   </div>
+   <div class="field">
+    <label>
+     Ist die Gegenpartei bereits bekannt?
+     <span class="required">
+      *
+     </span>
+    </label>
+    <div class="radio-group">
+     <label class="radio-option">
+      <input name="gegenpartei" type="radio" value="ja"/>
+      <span>
+       Ja
+      </span>
+     </label>
+     <label class="radio-option">
+      <input name="gegenpartei" type="radio" value="nein"/>
+      <span>
+       Nein
+      </span>
+     </label>
+    </div>
+   </div>
+   <div class="info-box">
+    <strong>
+     Angaben zur Gegenpartei
+    </strong>
+   </div>
+   <div class="field">
+    <label>
+     Name / Firma
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="gegenpartei_name" placeholder="Name der Gegenpartei" type="text"/>
+   </div>
+   <div class="field">
+    <label>
+     Anschrift
+     <span class="required">
+      *
+     </span>
+    </label>
+    <textarea name="gegenpartei_anschrift"></textarea>
+   </div>
+   <div class="field">
+    <label>
+     E-Mail
+     <span class="required">
+      *
+     </span>
+    </label>
+    <input name="gegenpartei_email" type="email"/>
+   </div>
+   <div class="field">
+    <label>
+     Telefon (optional)
+    </label>
+    <input name="gegenpartei_telefon" type="tel"/>
+   </div>
+  </div>
+  <div class="buttons">
+   <button class="btn-secondary" disabled="">
+    ← Zurück
+   </button>
+   <button class="btn-primary">
+    Weiter →
+   </button>
+  </div>
+  <!-- SCHRITT 2: MIETOBJEKT -->
+  <div style="margin-top: 60px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Mietobjekt
+    </h2>
+    <div class="field">
+     <label>
+      Objektadresse
+      <span class="required">
+       *
+      </span>
+     </label>
+     <textarea name="objektadresse" placeholder="Musterstraße 42, 12345 Musterstadt"></textarea>
+    </div>
+    <div class="field">
+     <label>
+      Wohnung / Bezeichnung
+     </label>
+     <input name="wohnung_bez" placeholder="z.B. WE 3.2, 2. OG links" type="text"/>
+    </div>
+    <div class="field">
+     <label>
+      Wohnungsart
+      <span class="required">
+       *
+      </span>
+     </label>
+     <select name="wohnungsart">
+      <option value="">
+       Bitte wählen...
+      </option>
+      <option>
+       Eigentumswohnung in Mehrfamilienhaus
+      </option>
+      <option>
+       Einfamilienhaus
+      </option>
+      <option>
+       Doppelhaushälfte
+      </option>
+      <option>
+       Reihenhaus
+      </option>
+      <option>
+       Einliegerwohnung
+      </option>
+      <option>
+       Wohnung im Hochhaus
+      </option>
+      <option>
+       Sonstiges
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      Wohnfläche (m²)
+      <span class="required">
+       *
+      </span>
+     </label>
+     <input name="wohnflaeche" placeholder="z.B. 75.5" type="number"/>
+    </div>
+    <div class="field" style="background: #fef2f2; padding: 15px; border-radius: 8px; border-left: 4px solid #dc2626;">
+     <label>
+      Bezugsfertig seit (Datum)
+      <span class="required">
+       *
+      </span>
+     </label>
+     <input name="bezugsfertig" type="date"/>
+     <p style="font-size: 13px; color: #991b1b; margin-top: 6px; font-weight: 500;">
+      ⚠️ Wichtig: Dieses Datum ist entscheidend für die Mietpreisbremse!
+     </p>
+     <p style="font-size: 12px; color: #7f1d1d; margin-top: 4px;">
+      Wann war die Wohnung erstmals bezugsfertig? (Bei Neubau: Datum der Erstbezugsfähigkeit)
+     </p>
+    </div>
+    <div class="field">
+     <label>
+      Außenbereich
+     </label>
+     <div class="checkbox-group">
+      <label class="checkbox-option">
+       <input name="aussenbereich" type="checkbox"/>
+       <span>
+        Balkon
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="aussenbereich" type="checkbox"/>
+       <span>
+        Loggia
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="aussenbereich" type="checkbox"/>
+       <span>
+        Terrasse
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="aussenbereich" type="checkbox"/>
+       <span>
+        Keiner
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Nebenräume
+     </label>
+     <div class="checkbox-group">
+      <label class="checkbox-option">
+       <input name="nebenraeume" type="checkbox"/>
+       <span>
+        Keller
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="nebenraeume" type="checkbox"/>
+       <span>
+        Dachboden
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="nebenraeume" type="checkbox"/>
+       <span>
+        Abstellraum
+       </span>
+      </label>
+      <label class="checkbox-option">
+       <input name="nutzung" type="checkbox"/>
+       <span>
+        Fahrradraum (Mitbenutzung)
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Stellplatz
+     </label>
+     <select name="stellplatz">
+      <option value="">
+       Bitte wählen...
+      </option>
+      <option>
+       Kein Stellplatz
+      </option>
+      <option>
+       Außenstellplatz
+      </option>
+      <option>
+       Tiefgarage
+      </option>
+      <option>
+       Carport
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      Stellplatz-Nummer (optional)
+     </label>
+     <input name="stellplatz_nr" placeholder="z.B. TG-27" type="text"/>
+    </div>
+    <div class="field">
+     <label>
+      Mitvermietete Ausstattung (optional)
+     </label>
+     <input name="ausstattung" placeholder="z.B. Einbauküche, dann Enter drücken" type="text"/>
+    </div>
+    <div class="field">
+     <label>
+      Wohnungseigentümergemeinschaft (WEG)
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="weg" type="radio" value="ja"/>
+       <span>
+        Ja
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="weg" type="radio" value="nein"/>
+       <span>
+        Nein
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Miteigentumsanteile (optional)
+     </label>
+     <input name="mea" placeholder="z.B. 125.5" type="number"/>
+    </div>
+    <div class="info-box">
+     <strong>
+      Dokumente hochladen
+     </strong>
+    </div>
+    <div class="field">
+     <label>
+      Grundriss / Plan
+     </label>
+     <div class="file-upload">
+      <p>
+       📄 Datei auswählen
+      </p>
+      <small style="color: #64748b; margin-top: 8px; display: block;">
+       PDF, JPG oder PNG
+      </small>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Teilungserklärung / WEG-Abrechnung
+     </label>
+     <div class="file-upload">
+      <p>
+       📄 Datei auswählen
+      </p>
+      <small style="color: #64748b; margin-top: 8px; display: block;">
+       PDF, JPG oder PNG
+      </small>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- SCHRITT 5: MIETE & KOSTEN -->
+  <div style="margin-top: 60px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Miete &amp; Kosten
+    </h2>
+    <div class="field">
+     <label>
+      Grundmiete / Monat (EUR)
+      <span class="required">
+       *
+      </span>
+     </label>
+     <input name="grundmiete" placeholder="z.B. 1450" type="number"/>
+    </div>
+    <div class="info-box" style="background: #f0f9ff; border-color: #0284c7;">
+     <strong>
+      Zuschläge (optional)
+     </strong>
+     <p style="font-size: 13px; margin-top: 4px;">
+      Diese Zuschläge werden zur Grundmiete addiert und separat im Vertrag ausgewiesen.
+     </p>
+    </div>
+    <div class="field">
+     <label>
+      Zuschlag für Möblierung (EUR)
+     </label>
+     <input name="zuschlag_moeblierung" placeholder="z.B. 150" type="number"/>
+     <p style="font-size: 13px; color: #64748b; margin-top: 6px;">
+      Falls die Wohnung möbliert vermietet wird
+     </p>
+    </div>
+    <div class="field">
+     <label>
+      Zuschlag für teilgewerbliche Nutzung (EUR)
+     </label>
+     <input name="zuschlag_teilgewerbe" placeholder="z.B. 100" type="number"/>
+     <p style="font-size: 13px; color: #64748b; margin-top: 6px;">
+      Falls Teile der Wohnung gewerblich genutzt werden (z.B. Home-Office)
+     </p>
+    </div>
+    <div class="field">
+     <label>
+      Zuschlag für Untervermietung (EUR)
+     </label>
+     <input name="zuschlag_unterverm" placeholder="z.B. 80" type="number"/>
+     <p style="font-size: 13px; color: #64748b; margin-top: 6px;">
+      Falls eine Untervermietung geplant ist
+     </p>
+    </div>
+    <div class="field">
+     <label>
+      Vorauszahlung Heizung/Warmwasser (EUR)
+     </label>
+     <input name="vz_heizung" placeholder="z.B. 130" type="number"/>
+    </div>
+    <div class="field">
+     <label>
+      Vorauszahlung übrige Betriebskosten (EUR)
+     </label>
+     <input name="vz_bk" placeholder="z.B. 220" type="number"/>
+    </div>
+    <div class="field">
+     <label>
+      Stellplatzmiete (EUR)
+     </label>
+     <input name="stellplatzmiete" placeholder="z.B. 90" type="number"/>
+    </div>
+    <div class="calculated">
+     <div class="calculated-label">
+      Gesamtmiete / Monat
+     </div>
+     <div class="calculated-value">
+      1.890,00 EUR
+     </div>
+     <small style="color: #065f46; margin-top: 8px; display: block;">
+      Automatisch berechnet (schreibgeschützt)
+     </small>
+    </div>
+    <div class="field">
+     <label>
+      Zahlungsart
+      <span class="required">
+       *
+      </span>
+     </label>
+     <select name="zahlungsart">
+      <option value="">
+       Bitte wählen...
+      </option>
+      <option>
+       Überweisung
+      </option>
+      <option>
+       SEPA-Lastschrift
+      </option>
+     </select>
+    </div>
+    <div class="field">
+     <label>
+      Zahler-IBAN (optional)
+     </label>
+     <input name="zahler_iban" placeholder="DE89 3704 0044 0532 0130 00" type="text"/>
+    </div>
+    <div class="field">
+     <label>
+      Betriebskostenmodell
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="bk" type="radio" value="vorauszahlung"/>
+       <span>
+        Vorauszahlung mit jährlicher Abrechnung
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="bk" type="radio" value="pauschale"/>
+       <span>
+        Pauschale
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      BK-Umlage über WEG
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="bkweg" type="radio" value="ja"/>
+       <span>
+        Ja
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="bkweg" type="radio" value="nein"/>
+       <span>
+        Nein
+       </span>
+      </label>
+     </div>
+    </div>
+   </div>
+  </div>
+  <!-- SCHRITT 6: NUTZUNG & TIERE -->
+  <div style="margin-top: 60px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Nutzung &amp; Tierhaltung
+    </h2>
+    <div class="field">
+     <label>
+      Nutzung
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="nutzung" type="radio" value="wohnen"/>
+       <span>
+        Nur zu Wohnzwecken
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="nutzung" type="radio" value="wohnen_gewerbe"/>
+       <span>
+        Wohnen + kleines Gewerbe/Home-Office
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Untervermietung geplant?
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="untervermietung" type="radio" value="nein"/>
+       <span>
+        Nein
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="untervermietung" type="radio" value="teilweise"/>
+       <span>
+        Teilweise
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="untervermietung" type="radio" value="vollstaendig"/>
+       <span>
+        Vollständig
+       </span>
+      </label>
+     </div>
+    </div>
+    <div class="field">
+     <label>
+      Tierhaltung
+      <span class="required">
+       *
+      </span>
+     </label>
+     <div class="radio-group">
+      <label class="radio-option">
+       <input name="haustiere" type="radio" value="kleintiere"/>
+       <span>
+        Nur Kleintiere (ohne Erlaubnis)
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="haustiere" type="radio" value="hund_katze"/>
+       <span>
+        Hund/Katze (mit Erlaubnis des Vermieters)
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="haustiere" type="radio" value="keine"/>
+       <span>
+        Keine (außer Kleintiere)
+       </span>
+      </label>
+      <label class="radio-option">
+       <input name="haustiere" type="radio" value="sondervereinbarung"/>
+       <span>
+        Sondervereinbarung (individuell)
+       </span>
+      </label>
+     </div>
+    </div>
+    <!-- Conditional: Show only if "Sondervereinbarung" selected -->
+    <div class="field" style="background: #fef3c7; padding: 15px; border-radius: 8px; border-left: 4px solid #f59e0b;">
+     <label>
+      Details zur Sondervereinbarung
+      <span class="required">
+       *
+      </span>
+     </label>
+     <textarea name="tiere_details" placeholder="Beschreiben Sie die individuelle Vereinbarung zur Tierhaltung..." rows="3"></textarea>
+     <p style="font-size: 13px; color: #92400e; margin-top: 6px;">
+      Diese individuelle Regelung wird in den Mietvertrag aufgenommen
+     </p>
+    </div>
+   </div>
+  </div>
+  <!-- SCHRITT 7: ZUSAMMENFASSUNG -->
+  <div style="margin-top: 60px;">
+   <div class="form-section">
+    <h2 class="section-title">
+     Zusammenfassung
+    </h2>
+    <p style="color: #64748b; margin-bottom: 30px;">
+     Bitte überprüfen Sie Ihre Angaben. Sie können mit "Zurück" zur gewünschten Sektion navigieren, um Änderungen vorzunehmen.
+    </p>
+    <div class="summary-section">
+     <div class="summary-title">
+      Rolle &amp; Kontakt
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Rolle:
+      </span>
+      <span class="summary-value">
+       Vermieter
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Name:
+      </span>
+      <span class="summary-value">
+       Max Mustermann
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       E-Mail:
+      </span>
+      <span class="summary-value">
+       <a class="__cf_email__" data-cfemail="94f9f5ecd4f6f1fde7e4fdf1f8baf0f1" href="/cdn-cgi/l/email-protection">
+        [email protected]
+       </a>
+      </span>
+     </div>
+    </div>
+    <div class="summary-section">
+     <div class="summary-title">
+      Mietobjekt
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Adresse:
+      </span>
+      <span class="summary-value">
+       Musterstraße 42, 12345 Musterstadt
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Wohnungsart:
+      </span>
+      <span class="summary-value">
+       Eigentumswohnung in Mehrfamilienhaus
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Wohnfläche:
+      </span>
+      <span class="summary-value">
+       75,50 m²
+      </span>
+     </div>
+    </div>
+    <div class="summary-section">
+     <div class="summary-title">
+      Miete &amp; Kosten
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       Grundmiete:
+      </span>
+      <span class="summary-value">
+       1.450,00 EUR
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       VZ Heizung/WW:
+      </span>
+      <span class="summary-value">
+       130,00 EUR
+      </span>
+     </div>
+     <div class="summary-item">
+      <span class="summary-label">
+       VZ Betriebskosten:
+      </span>
+      <span class="summary-value">
+       220,00 EUR
+      </span>
+     </div>
+     <div class="summary-item" style="background: #d1fae5; padding: 12px; border-radius: 6px; font-weight: 600;">
+      <span class="summary-label" style="color: #065f46;">
+       Gesamtmiete:
+      </span>
+      <span class="summary-value" style="color: #059669;">
+       1.890,00 EUR
+      </span>
+     </div>
+    </div>
+    <div class="info-box" style="margin-top: 30px; background: #f0fdf4; border-color: #10b981;">
+     <p style="font-weight: 600; margin-bottom: 10px; color: #065f46;">
+      ✓ Ihre Angaben sind vollständig
+     </p>
+     <p style="color: #047857;">
+      Im nächsten Schritt werden Ihre Daten automatisch gespeichert und per E-Mail an Ihren Anwalt weitergeleitet.
+     </p>
+    </div>
+    <button class="btn-success" style="width: 100%; justify-content: center; margin-top: 25px; font-size: 18px; padding: 16px;">
+     📧 Daten absenden und an Anwalt senden
+    </button>
+    <p style="text-align: center; font-size: 13px; color: #64748b; margin-top: 15px;">
+     Sie erhalten eine Kopie per E-Mail zur Bestätigung
+    </p>
+   </div>
+  </div>
+ </body>
+</html>
