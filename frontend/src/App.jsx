@@ -16,26 +16,26 @@ function MandantenMaske() {
   const [currentStep, setCurrentStep] = useState(0);
   const initialState = {
     rolle: "",
-    eigeneName: "",
-    eigeneAnschrift: "",
-    eigeneEmail: "",
-    eigeneTelefon: "",
-    eigeneIBAN: "",
-    wirdVertreten: "",
-    vertreterName: "",
-    vollmachtVorhanden: "",
+    eigene_name: "",
+    eigene_anschrift: "",
+    eigene_email: "",
+    eigene_telefon: "",
+    eigene_iban: "",
+    wird_vertreten: "",
+    vertreten_durch: "",
+    vollmacht: "",
     ustId: "",
-    steuerNummer: "",
+    steuernummer: "",
     gegenparteiBekannt: "",
     gegenparteiName: "",
     gegenparteiAnschrift: "",
     gegenparteiEmail: "",
     gegenparteiTelefon: "",
     objektadresse: "",
-    wohnungsbezeichnung: "",
+    wohnung_bez: "",
     wohnungsart: "",
     wohnflaeche: "",
-    bezugsfertigSeit: "",
+    bezugsfertig: "",
     aussenbereich: [],
     nebenraeume: [],
     stellplatz: "",
@@ -45,11 +45,11 @@ function MandantenMaske() {
     miteigentumsanteile: "",
     grundrissDatei: "",
     wegDokument: "",
-    zustandBeiUebergabe: "",
+    zustand: "",
     uebergabeprotokoll: null,
     laerm: "",
     schluessel_arten: [],
-    schluesselGesamtzahl: "",
+    schluessel_anzahl: "",
     mietbeginn: "",
     mietende: "",
     vertragsart: "",
@@ -59,18 +59,18 @@ function MandantenMaske() {
     zuschlagMoebliert: "",
     zuschlagGewerbe: "",
     zuschlagUntervermietung: "",
-    vzHeizWW: "",
-    vzSonstigeBK: "",
+    vz_heizung: "",
+    vz_bk: "",
     stellplatzmiete: "",
     zahlungsart: "",
     zahlerIban: "",
-    bkModell: "",
+    bk_modell: "",
     abrechnungszeitraum: "",
     bkweg: "",
     nutzung: "",
-    untervermietungGeplant: "",
+    unterverm: "",
     haustiere: "",
-    haustiereDetails: "",
+    tiere_details: "",
     kaution: "3",
     kautionZahlweise: "",
     kautionsform: "",
@@ -136,8 +136,8 @@ function MandantenMaske() {
       toNumber(formData.zuschlagMoebliert) +
       toNumber(formData.zuschlagGewerbe) +
       toNumber(formData.zuschlagUntervermietung) +
-      toNumber(formData.vzHeizWW) +
-      toNumber(formData.vzSonstigeBK) +
+      toNumber(formData.vz_heizung) +
+      toNumber(formData.vz_bk) +
       toNumber(formData.stellplatzmiete);
     return formatCurrency(total);
   };
@@ -148,20 +148,20 @@ function MandantenMaske() {
     if (step === 0) {
       if (!formData.rolle)
         newErrors.rolle = "Bitte wählen Sie Ihre Rolle.";
-      if (!formData.eigeneName)
-        newErrors.eigeneName = "Name ist erforderlich.";
-      if (!formData.eigeneAnschrift)
-        newErrors.eigeneAnschrift = "Anschrift ist erforderlich.";
-      if (!formData.eigeneEmail)
-        newErrors.eigeneEmail = "E-Mail ist erforderlich.";
-      if (!formData.eigeneTelefon)
-        newErrors.eigeneTelefon = "Telefon ist erforderlich.";
-      if (!formData.eigeneIBAN)
-        newErrors.eigeneIBAN = "IBAN ist erforderlich.";
-      if (formData.wirdVertreten === "ja" && !formData.vertreterName)
-        newErrors.vertreterName = "Bitte benennen Sie den Vertreter.";
-      if (formData.wirdVertreten === "ja" && !formData.vollmachtVorhanden)
-        newErrors.vollmachtVorhanden = "Bitte wählen Sie eine Option zur Vollmacht.";
+      if (!formData.eigene_name)
+        newErrors.eigene_name = "Name ist erforderlich.";
+      if (!formData.eigene_anschrift)
+        newErrors.eigene_anschrift = "Anschrift ist erforderlich.";
+      if (!formData.eigene_email)
+        newErrors.eigene_email = "E-Mail ist erforderlich.";
+      if (!formData.eigene_telefon)
+        newErrors.eigene_telefon = "Telefon ist erforderlich.";
+      if (!formData.eigene_iban)
+        newErrors.eigene_iban = "IBAN ist erforderlich.";
+      if (formData.wird_vertreten === "ja" && !formData.vertreten_durch)
+        newErrors.vertreten_durch = "Bitte benennen Sie den Vertreter.";
+      if (formData.wird_vertreten === "ja" && !formData.vollmacht)
+        newErrors.vollmacht = "Bitte wählen Sie eine Option zur Vollmacht.";
       if (formData.gegenparteiBekannt === "ja") {
         if (!formData.gegenparteiName)
           newErrors.gegenparteiName = "Name der Gegenpartei ist erforderlich.";
@@ -179,15 +179,15 @@ function MandantenMaske() {
         newErrors.wohnungsart = "Bitte wählen Sie die Wohnungsart.";
       if (!formData.wohnflaeche)
         newErrors.wohnflaeche = "Wohnfläche ist erforderlich.";
-      if (!formData.bezugsfertigSeit)
-        newErrors.bezugsfertigSeit = "Bitte wählen Sie das Bezugsfertig-Datum.";
+      if (!formData.bezugsfertig)
+        newErrors.bezugsfertig = "Bitte wählen Sie das Bezugsfertig-Datum.";
       if (!formData.weg)
         newErrors.weg = "Bitte wählen Sie eine Option zur WEG.";
     }
 
     if (step === 2) {
-      if (!formData.zustandBeiUebergabe)
-        newErrors.zustandBeiUebergabe = "Bitte wählen Sie den Zustand.";
+      if (!formData.zustand)
+        newErrors.zustand = "Bitte wählen Sie den Zustand.";
       if (formData.uebergabeprotokoll === null)
         newErrors.uebergabeprotokoll =
           "Bitte wählen Sie, ob ein Übergabeprotokoll geführt wird.";
@@ -196,8 +196,8 @@ function MandantenMaske() {
       if (!formData.schluessel_arten?.length)
         newErrors.schluessel_arten =
           "Bitte wählen Sie mindestens eine Schlüsselart aus.";
-      if (!formData.schluesselGesamtzahl)
-        newErrors.schluesselGesamtzahl = "Bitte geben Sie die Schlüsselanzahl an.";
+      if (!formData.schluessel_anzahl)
+        newErrors.schluessel_anzahl = "Bitte geben Sie die Schlüsselanzahl an.";
     }
 
     if (step === 3) {
@@ -221,30 +221,30 @@ function MandantenMaske() {
         newErrors.grundmiete = "Grundmiete ist erforderlich.";
       if (!formData.zahlungsart)
         newErrors.zahlungsart = "Bitte wählen Sie die Zahlungsart.";
-      if (!formData.bkModell)
-        newErrors.bkModell = "Bitte wählen Sie das Betriebskostenmodell.";
+      if (!formData.bk_modell)
+        newErrors.bk_modell = "Bitte wählen Sie das Betriebskostenmodell.";
       if (!formData.abrechnungszeitraum)
         newErrors.abrechnungszeitraum = "Bitte wählen Sie den Abrechnungszeitraum.";
       if (!formData.bkweg)
         newErrors.bkweg = "Bitte wählen Sie eine Option zur BK-Umlage.";
-      if (!formData.vzHeizWW)
-        newErrors.vzHeizWW = "Bitte geben Sie die Vorauszahlung Heizung/Warmwasser an.";
-      if (!formData.vzSonstigeBK)
-        newErrors.vzSonstigeBK = "Bitte geben Sie die Betriebskosten-Vorauszahlung an.";
+      if (!formData.vz_heizung)
+        newErrors.vz_heizung = "Bitte geben Sie die Vorauszahlung Heizung/Warmwasser an.";
+      if (!formData.vz_bk)
+        newErrors.vz_bk = "Bitte geben Sie die Betriebskosten-Vorauszahlung an.";
     }
 
     if (step === 5) {
       if (!formData.nutzung)
         newErrors.nutzung = "Bitte wählen Sie die Nutzung.";
-      if (!formData.untervermietungGeplant)
-        newErrors.untervermietungGeplant = "Bitte geben Sie eine Angabe zur Untervermietung an.";
+      if (!formData.unterverm)
+        newErrors.unterverm = "Bitte geben Sie eine Angabe zur Untervermietung an.";
       if (!formData.haustiere)
         newErrors.haustiere = "Bitte wählen Sie eine Option zur Tierhaltung.";
       if (
         formData.haustiere === "sondervereinbarung" &&
-        !formData.haustiereDetails
+        !formData.tiere_details
       ) {
-        newErrors.haustiereDetails = "Bitte beschreiben Sie die Sondervereinbarung.";
+        newErrors.tiere_details = "Bitte beschreiben Sie die Sondervereinbarung.";
       }
     }
 
@@ -279,7 +279,7 @@ function MandantenMaske() {
     if (!validateStep(currentStep)) return;
     const output = {
       ...formData,
-      Timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
     };
 
     try {
@@ -375,13 +375,13 @@ function MandantenMaske() {
               </label>
               <input
                 type="text"
-                className={`input ${errors.eigeneName ? "error" : ""}`}
-                value={formData.eigeneName}
-                onChange={(e) => updateFormData("eigeneName", e.target.value)}
+                className={`input ${errors.eigene_name ? "error" : ""}`}
+                value={formData.eigene_name}
+                onChange={(e) => updateFormData("eigene_name", e.target.value)}
                 placeholder="Max Mustermann bzw. Muster GmbH"
               />
-              {errors.eigeneName && (
-                <div className="error-text">{errors.eigeneName}</div>
+              {errors.eigene_name && (
+                <div className="error-text">{errors.eigene_name}</div>
               )}
             </div>
 
@@ -390,16 +390,16 @@ function MandantenMaske() {
                 Anschrift <span className="required">*</span>
               </label>
               <textarea
-                className={`textarea ${errors.eigeneAnschrift ? "error" : ""}`}
-                value={formData.eigeneAnschrift}
+                className={`textarea ${errors.eigene_anschrift ? "error" : ""}`}
+                value={formData.eigene_anschrift}
                 onChange={(e) =>
-                  updateFormData("eigeneAnschrift", e.target.value)
+                  updateFormData("eigene_anschrift", e.target.value)
                 }
                 placeholder="Musterstraße 1, 12345 Musterstadt"
                 rows="2"
               ></textarea>
-              {errors.eigeneAnschrift && (
-                <div className="error-text">{errors.eigeneAnschrift}</div>
+              {errors.eigene_anschrift && (
+                <div className="error-text">{errors.eigene_anschrift}</div>
               )}
             </div>
 
@@ -409,13 +409,13 @@ function MandantenMaske() {
               </label>
               <input
                 type="email"
-                className={`input ${errors.eigeneEmail ? "error" : ""}`}
-                value={formData.eigeneEmail}
-                onChange={(e) => updateFormData("eigeneEmail", e.target.value)}
+                className={`input ${errors.eigene_email ? "error" : ""}`}
+                value={formData.eigene_email}
+                onChange={(e) => updateFormData("eigene_email", e.target.value)}
                 placeholder="beispiel@email.de"
               />
-              {errors.eigeneEmail && (
-                <div className="error-text">{errors.eigeneEmail}</div>
+              {errors.eigene_email && (
+                <div className="error-text">{errors.eigene_email}</div>
               )}
             </div>
 
@@ -425,13 +425,13 @@ function MandantenMaske() {
               </label>
               <input
                 type="tel"
-                className={`input ${errors.eigeneTelefon ? "error" : ""}`}
-                value={formData.eigeneTelefon}
-                onChange={(e) => updateFormData("eigeneTelefon", e.target.value)}
+                className={`input ${errors.eigene_telefon ? "error" : ""}`}
+                value={formData.eigene_telefon}
+                onChange={(e) => updateFormData("eigene_telefon", e.target.value)}
                 placeholder="+49 123 456789"
               />
-              {errors.eigeneTelefon && (
-                <div className="error-text">{errors.eigeneTelefon}</div>
+              {errors.eigene_telefon && (
+                <div className="error-text">{errors.eigene_telefon}</div>
               )}
             </div>
 
@@ -441,13 +441,13 @@ function MandantenMaske() {
               </label>
               <input
                 type="text"
-                className={`input ${errors.eigeneIBAN ? "error" : ""}`}
-                value={formData.eigeneIBAN}
-                onChange={(e) => updateFormData("eigeneIBAN", e.target.value)}
+                className={`input ${errors.eigene_iban ? "error" : ""}`}
+                value={formData.eigene_iban}
+                onChange={(e) => updateFormData("eigene_iban", e.target.value)}
                 placeholder="DE89 3704 0044 0532 0130 00"
               />
-              {errors.eigeneIBAN && (
-                <div className="error-text">{errors.eigeneIBAN}</div>
+              {errors.eigene_iban && (
+                <div className="error-text">{errors.eigene_iban}</div>
               )}
             </div>
 
@@ -462,9 +462,9 @@ function MandantenMaske() {
                     <input
                       type="radio"
                       value={value}
-                      checked={formData.wirdVertreten === value}
+                      checked={formData.wird_vertreten === value}
                       onChange={(e) =>
-                        updateFormData("wirdVertreten", e.target.value)
+                        updateFormData("wird_vertreten", e.target.value)
                       }
                     />
                     <span>{label}</span>
@@ -473,7 +473,7 @@ function MandantenMaske() {
               </div>
             </div>
 
-            {formData.wirdVertreten === "ja" && (
+            {formData.wird_vertreten === "ja" && (
               <div className="highlight-box">
                 <div className="field-v2">
                   <label>
@@ -481,15 +481,15 @@ function MandantenMaske() {
                   </label>
                   <input
                     type="text"
-                    className={`input ${errors.vertreterName ? "error" : ""}`}
-                    value={formData.vertreterName}
+                    className={`input ${errors.vertreten_durch ? "error" : ""}`}
+                    value={formData.vertreten_durch}
                     onChange={(e) =>
-                      updateFormData("vertreterName", e.target.value)
+                      updateFormData("vertreten_durch", e.target.value)
                     }
                     placeholder="z.B. Hausverwaltung Müller GmbH"
                   />
-                  {errors.vertreterName && (
-                    <div className="error-text">{errors.vertreterName}</div>
+                  {errors.vertreten_durch && (
+                    <div className="error-text">{errors.vertreten_durch}</div>
                   )}
                 </div>
 
@@ -506,17 +506,17 @@ function MandantenMaske() {
                         <input
                           type="radio"
                           value={value}
-                          checked={formData.vollmachtVorhanden === value}
+                          checked={formData.vollmacht === value}
                           onChange={(e) =>
-                            updateFormData("vollmachtVorhanden", e.target.value)
+                            updateFormData("vollmacht", e.target.value)
                           }
                         />
                         <span>{label}</span>
                       </label>
                     ))}
                   </div>
-                  {errors.vollmachtVorhanden && (
-                    <div className="error-text">{errors.vollmachtVorhanden}</div>
+                  {errors.vollmacht && (
+                    <div className="error-text">{errors.vollmacht}</div>
                   )}
                 </div>
               </div>
@@ -538,8 +538,8 @@ function MandantenMaske() {
               <input
                 type="text"
                 className="input"
-                value={formData.steuerNummer}
-                onChange={(e) => updateFormData("steuerNummer", e.target.value)}
+                value={formData.steuernummer}
+                onChange={(e) => updateFormData("steuernummer", e.target.value)}
                 placeholder="z.B. 12/345/67890"
               />
             </div>
@@ -670,9 +670,9 @@ function MandantenMaske() {
               <input
                 type="text"
                 className="input"
-                value={formData.wohnungsbezeichnung}
+                value={formData.wohnung_bez}
                 onChange={(e) =>
-                  updateFormData("wohnungsbezeichnung", e.target.value)
+                  updateFormData("wohnung_bez", e.target.value)
                 }
                 placeholder="z.B. WE 3.2, 2. OG links"
               />
@@ -723,14 +723,14 @@ function MandantenMaske() {
               </label>
               <input
                 type="date"
-                className={`input ${errors.bezugsfertigSeit ? "error" : ""}`}
-                value={formData.bezugsfertigSeit}
+                className={`input ${errors.bezugsfertig ? "error" : ""}`}
+                value={formData.bezugsfertig}
                 onChange={(e) =>
-                  updateFormData("bezugsfertigSeit", e.target.value)
+                  updateFormData("bezugsfertig", e.target.value)
                 }
               />
-              {errors.bezugsfertigSeit && (
-                <div className="error-text">{errors.bezugsfertigSeit}</div>
+              {errors.bezugsfertig && (
+                <div className="error-text">{errors.bezugsfertig}</div>
               )}
               <p className="help-text" style={{ color: "#991b1b" }}>
                 ⚠️ Wichtig: Dieses Datum ist entscheidend für die Mietpreisbremse!
@@ -895,10 +895,10 @@ function MandantenMaske() {
                 Zustand bei Übergabe <span className="required">*</span>
               </label>
               <select
-                className={`select ${errors.zustandBeiUebergabe ? "error" : ""}`}
-                value={formData.zustandBeiUebergabe}
+                className={`select ${errors.zustand ? "error" : ""}`}
+                value={formData.zustand}
                 onChange={(e) =>
-                  updateFormData("zustandBeiUebergabe", e.target.value)
+                  updateFormData("zustand", e.target.value)
                 }
               >
                 <option value="">Bitte wählen...</option>
@@ -906,8 +906,8 @@ function MandantenMaske() {
                 <option>Teilsaniert</option>
                 <option>Unrenoviert</option>
               </select>
-              {errors.zustandBeiUebergabe && (
-                <div className="error-text">{errors.zustandBeiUebergabe}</div>
+              {errors.zustand && (
+                <div className="error-text">{errors.zustand}</div>
               )}
             </div>
 
@@ -979,14 +979,14 @@ function MandantenMaske() {
               </label>
               <input
                 type="number"
-                className={`input ${errors.schluesselGesamtzahl ? "error" : ""}`}
-                value={formData.schluesselGesamtzahl}
+                className={`input ${errors.schluessel_anzahl ? "error" : ""}`}
+                value={formData.schluessel_anzahl}
                 onChange={(e) =>
-                  updateFormData("schluesselGesamtzahl", e.target.value)
+                  updateFormData("schluessel_anzahl", e.target.value)
                 }
               />
-              {errors.schluesselGesamtzahl && (
-                <div className="error-text">{errors.schluesselGesamtzahl}</div>
+              {errors.schluessel_anzahl && (
+                <div className="error-text">{errors.schluessel_anzahl}</div>
               )}
             </div>
           </div>
@@ -1165,13 +1165,13 @@ function MandantenMaske() {
               <label>Vorauszahlung Heizung/Warmwasser (EUR)</label>
               <input
                 type="number"
-                className={`input ${errors.vzHeizWW ? "error" : ""}`}
-                value={formData.vzHeizWW}
-                onChange={(e) => updateFormData("vzHeizWW", e.target.value)}
+                className={`input ${errors.vz_heizung ? "error" : ""}`}
+                value={formData.vz_heizung}
+                onChange={(e) => updateFormData("vz_heizung", e.target.value)}
                 placeholder="z.B. 130"
               />
-              {errors.vzHeizWW && (
-                <div className="error-text">{errors.vzHeizWW}</div>
+              {errors.vz_heizung && (
+                <div className="error-text">{errors.vz_heizung}</div>
               )}
             </div>
 
@@ -1179,15 +1179,15 @@ function MandantenMaske() {
               <label>Vorauszahlung übrige Betriebskosten (EUR)</label>
               <input
                 type="number"
-                className={`input ${errors.vzSonstigeBK ? "error" : ""}`}
-                value={formData.vzSonstigeBK}
+                className={`input ${errors.vz_bk ? "error" : ""}`}
+                value={formData.vz_bk}
                 onChange={(e) =>
-                  updateFormData("vzSonstigeBK", e.target.value)
+                  updateFormData("vz_bk", e.target.value)
                 }
                 placeholder="z.B. 220"
               />
-              {errors.vzSonstigeBK && (
-                <div className="error-text">{errors.vzSonstigeBK}</div>
+              {errors.vz_bk && (
+                <div className="error-text">{errors.vz_bk}</div>
               )}
             </div>
 
@@ -1256,15 +1256,15 @@ function MandantenMaske() {
                     <input
                       type="radio"
                       value={value}
-                      checked={formData.bkModell === value}
-                      onChange={(e) => updateFormData("bkModell", e.target.value)}
+                      checked={formData.bk_modell === value}
+                      onChange={(e) => updateFormData("bk_modell", e.target.value)}
                     />
                     <span>{label}</span>
                   </label>
                 ))}
               </div>
-              {errors.bkModell && (
-                <div className="error-text">{errors.bkModell}</div>
+              {errors.bk_modell && (
+                <div className="error-text">{errors.bk_modell}</div>
               )}
             </div>
 
@@ -1364,17 +1364,17 @@ function MandantenMaske() {
                     <input
                       type="radio"
                       value={value}
-                      checked={formData.untervermietungGeplant === value}
+                      checked={formData.unterverm === value}
                       onChange={(e) =>
-                        updateFormData("untervermietungGeplant", e.target.value)
+                        updateFormData("unterverm", e.target.value)
                       }
                     />
                     <span>{label}</span>
                   </label>
                 ))}
               </div>
-              {errors.untervermietungGeplant && (
-                <div className="error-text">{errors.untervermietungGeplant}</div>
+              {errors.unterverm && (
+                <div className="error-text">{errors.unterverm}</div>
               )}
             </div>
 
@@ -1411,16 +1411,16 @@ function MandantenMaske() {
                   Details zur Sondervereinbarung <span className="required">*</span>
                 </label>
                 <textarea
-                  className={`textarea ${errors.haustiereDetails ? "error" : ""}`}
+                  className={`textarea ${errors.tiere_details ? "error" : ""}`}
                   rows="3"
-                  value={formData.haustiereDetails}
+                  value={formData.tiere_details}
                   onChange={(e) =>
-                    updateFormData("haustiereDetails", e.target.value)
+                    updateFormData("tiere_details", e.target.value)
                   }
                   placeholder="Beschreiben Sie die individuelle Vereinbarung zur Tierhaltung..."
                 ></textarea>
-                {errors.haustiereDetails && (
-                  <div className="error-text">{errors.haustiereDetails}</div>
+                {errors.tiere_details && (
+                  <div className="error-text">{errors.tiere_details}</div>
                 )}
               </div>
             )}
@@ -1522,11 +1522,11 @@ function MandantenMaske() {
               </div>
               <div className="summary-row">
                 <span className="summary-label">Name</span>
-                <span className="summary-value">{formData.eigeneName || "-"}</span>
+                <span className="summary-value">{formData.eigene_name || "-"}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">E-Mail</span>
-                <span className="summary-value">{formData.eigeneEmail || "-"}</span>
+                <span className="summary-value">{formData.eigene_email || "-"}</span>
               </div>
             </div>
 
@@ -1550,7 +1550,7 @@ function MandantenMaske() {
               <div className="summary-title">Zustand & Schlüssel</div>
               <div className="summary-row">
                 <span className="summary-label">Zustand</span>
-                <span className="summary-value">{formData.zustandBeiUebergabe || "-"}</span>
+                <span className="summary-value">{formData.zustand || "-"}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">Übergabeprotokoll</span>
@@ -1576,7 +1576,7 @@ function MandantenMaske() {
               </div>
               <div className="summary-row">
                 <span className="summary-label">Gesamtanzahl</span>
-                <span className="summary-value">{formData.schluesselGesamtzahl || "-"}</span>
+                <span className="summary-value">{formData.schluessel_anzahl || "-"}</span>
               </div>
             </div>
 
@@ -1616,11 +1616,11 @@ function MandantenMaske() {
               </div>
               <div className="summary-row">
                 <span className="summary-label">VZ Heizung/WW</span>
-                <span className="summary-value">{formatCurrency(formData.vzHeizWW)}</span>
+                <span className="summary-value">{formatCurrency(formData.vz_heizung)}</span>
               </div>
               <div className="summary-row">
                 <span className="summary-label">VZ Betriebskosten</span>
-                <span className="summary-value">{formatCurrency(formData.vzSonstigeBK)}</span>
+                <span className="summary-value">{formatCurrency(formData.vz_bk)}</span>
               </div>
               <div className="summary-row" style={{ fontWeight: 700, color: "#065f46" }}>
                 <span className="summary-label">Gesamtmiete</span>
@@ -1750,8 +1750,8 @@ function AnwaltsMaske() {
       toNumber(mandantendaten.zuschlagMoebliert) +
       toNumber(mandantendaten.zuschlagGewerbe) +
       toNumber(mandantendaten.zuschlagUntervermietung) +
-      toNumber(mandantendaten.vzHeizWW) +
-      toNumber(mandantendaten.vzSonstigeBK) +
+      toNumber(mandantendaten.vz_heizung) +
+      toNumber(mandantendaten.vz_bk) +
       toNumber(mandantendaten.stellplatzmiete);
 
     return formatCurrency(total);
@@ -1818,20 +1818,20 @@ function AnwaltsMaske() {
 
     if (role === "Mieter") {
       return {
-        email: maskAData.eigeneEmail || fallback.mieterEmail || "",
-        phone: maskAData.eigeneTelefon || fallback.mieterTelefon || "",
+        email: maskAData.eigene_email || fallback.mieterEmail || "",
+        phone: maskAData.eigene_telefon || fallback.mieterTelefon || "",
       };
     }
 
     return {
       email:
         maskAData.gegenparteiEmail ||
-        maskAData.eigeneEmail ||
+        maskAData.eigene_email ||
         fallback.mieterEmail ||
         "",
       phone:
         maskAData.gegenparteiTelefon ||
-        maskAData.eigeneTelefon ||
+        maskAData.eigene_telefon ||
         fallback.mieterTelefon ||
         "",
     };
@@ -2211,9 +2211,9 @@ function AnwaltsMaske() {
             <div className="summary-section">
               <div className="summary-title">Rolle & Kontakt</div>
               {renderSummaryField("Rolle", mandantendaten?.rolle)}
-              {renderSummaryField("Name / Firma", mandantendaten?.eigeneName)}
-              {renderSummaryField("E-Mail", mandantendaten?.eigeneEmail)}
-              {renderSummaryField("Telefon", mandantendaten?.eigeneTelefon)}
+              {renderSummaryField("Name / Firma", mandantendaten?.eigene_name)}
+              {renderSummaryField("E-Mail", mandantendaten?.eigene_email)}
+              {renderSummaryField("Telefon", mandantendaten?.eigene_telefon)}
             </div>
 
             <div className="summary-section">
@@ -2221,11 +2221,11 @@ function AnwaltsMaske() {
               {renderSummaryField("Objektadresse", mandantendaten?.objektadresse)}
               {renderSummaryField(
                 "Wohneinheit",
-                mandantendaten?.wohnungsart || mandantendaten?.wohnungsbezeichnung
+                mandantendaten?.wohnungsart || mandantendaten?.wohnung_bez
               )}
               {renderSummaryField(
                 "Heizkosten (EUR)",
-                mandantendaten?.vzHeizWW,
+                mandantendaten?.vz_heizung,
                 formatCurrency
               )}
             </div>
@@ -2235,7 +2235,7 @@ function AnwaltsMaske() {
               {renderSummaryField("Mietbeginn", mandantendaten?.mietbeginn)}
               {renderSummaryField(
                 "Bezugsfertig seit",
-                mandantendaten?.bezugsfertigSeit
+                mandantendaten?.bezugsfertig
               )}
             </div>
 
@@ -2330,8 +2330,8 @@ function AnwaltsMaske() {
 
       case 2: {
         const showMietpreisbremse = (() => {
-          if (!mandantendaten?.bezugsfertigSeit) return false;
-          const parsedDate = new Date(mandantendaten.bezugsfertigSeit);
+          if (!mandantendaten?.bezugsfertig) return false;
+          const parsedDate = new Date(mandantendaten.bezugsfertig);
           if (Number.isNaN(parsedDate.getTime())) return false;
           return parsedDate < new Date("2014-10-01");
         })();
