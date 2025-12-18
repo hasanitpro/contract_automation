@@ -4,26 +4,37 @@ import logging
 import os
 import re
 from datetime import datetime
-from typing import Any, Dict, Iterable, Mapping, Tuple
+from typing import Any, Dict, Iterable, Mapping, Optional, Tuple
 from uuid import uuid4
 
 import azure.functions as func
 from azure.core.exceptions import AzureError, ResourceNotFoundError
 from azure.storage.blob import BlobClient, BlobServiceClient
 from docx import Document
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, validator
 
 
 class GenerateContractRequest(BaseModel):
     maskA: Dict[str, Any] = Field(..., description="Data captured from Mask A")
     maskB: Dict[str, Any] = Field(..., description="Data captured from Mask B")
-    templatePath: str = Field(..., min_length=1)
+    templatePath: Optional[str] = Field(
+        None,
+        description=(
+            "Path to the template. Optional when TemplateBlobPath is configured in the environment."
+        ),
+    )
     placeholderMapping: Dict[str, str] = Field(
         ..., description="Mapping of template placeholders to mask fields"
     )
 
     class Config:
         extra = "allow"
+
+    @validator("templatePath", pre=True)
+    def _normalize_template_path(cls, value: Optional[str]) -> Optional[str]:
+        if isinstance(value, str) and not value.strip():
+            return None
+        return value
 
 
 class PlaceholderResolutionError(ValueError):
@@ -228,12 +239,20 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
             exc.json(), status_code=400, mimetype="application/json"
         )
 
+    template_default_path = os.getenv("TemplateBlobPath", "").strip()
     template_connection = os.getenv("TemplateBlobConnection", "") or os.getenv(
         "ContractsBlobConnection", ""
     )
     template_container = os.getenv("TemplatesContainer", "templates")
     contracts_container = os.getenv("ContractsContainer", "contracts")
     contracts_connection = os.getenv("ContractsBlobConnection", "")
+
+    template_path = payload.templatePath or template_default_path
+    if not template_path:
+        return _error_response(
+            "Template path must be provided or configured via TemplateBlobPath.",
+            400,
+        )
 
     try:
         placeholders = _resolve_placeholder_values(
@@ -244,7 +263,7 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
 
     try:
         extension, template_bytes = _load_template(
-            payload.templatePath, template_connection, template_container
+            template_path, template_connection, template_container
         )
     except TemplateProcessingError as exc:
         logging.exception("Template load failed: %s", exc)
