@@ -2337,10 +2337,26 @@ function AnwaltsMaske() {
 
       case 2: {
         const showMietpreisbremse = (() => {
+          if (
+            formData.mpbStatus ||
+            formData.mpbVormietverhaeltnis ||
+            formData.mpbGrenze ||
+            formData.mpbGrundVormiete ||
+            formData.mpbGrundModernisierung ||
+            formData.mpbGrundErstmiete
+          ) {
+            return true;
+          }
+
           if (!mandantendaten?.bezugsfertig) return false;
-          const parsedDate = new Date(mandantendaten.bezugsfertig);
+
+          // Force a consistent date parse so the Mietpreisbremse hint appears
+          // reliably for Objekte vor dem 01.10.2014.
+          const parsedDate = new Date(`${mandantendaten.bezugsfertig}T00:00:00`);
           if (Number.isNaN(parsedDate.getTime())) return false;
-          return parsedDate < new Date("2014-10-01");
+
+          const cutoff = new Date("2014-10-01T00:00:00");
+          return parsedDate <= cutoff;
         })();
 
         const showMpbStufe2 = formData.mpbStatus === "bereits_vermietet";
