@@ -46,9 +46,15 @@ function MandantenMaske() {
     grundrissDatei: "",
     wegDokument: "",
     zustandBeiUebergabe: "",
+    uebergabeprotokoll: null,
+    laerm: "",
+    schluessel_arten: [],
     schluesselGesamtzahl: "",
     mietbeginn: "",
+    mietende: "",
     vertragsart: "",
+    befristungsgrund: "",
+    befristungsgrund_text: "",
     grundmiete: "",
     zuschlagMoebliert: "",
     zuschlagGewerbe: "",
@@ -68,6 +74,7 @@ function MandantenMaske() {
     kaution: "3",
     kautionZahlweise: "",
     kautionsform: "",
+    uebergabedatum: "",
   };
   const [formData, setFormData] = useState(initialState);
   const [errors, setErrors] = useState({});
@@ -181,6 +188,14 @@ function MandantenMaske() {
     if (step === 2) {
       if (!formData.zustandBeiUebergabe)
         newErrors.zustandBeiUebergabe = "Bitte wählen Sie den Zustand.";
+      if (formData.uebergabeprotokoll === null)
+        newErrors.uebergabeprotokoll =
+          "Bitte wählen Sie, ob ein Übergabeprotokoll geführt wird.";
+      if (!formData.laerm)
+        newErrors.laerm = "Bitte wählen Sie die Lärmquelle aus.";
+      if (!formData.schluessel_arten?.length)
+        newErrors.schluessel_arten =
+          "Bitte wählen Sie mindestens eine Schlüsselart aus.";
       if (!formData.schluesselGesamtzahl)
         newErrors.schluesselGesamtzahl = "Bitte geben Sie die Schlüsselanzahl an.";
     }
@@ -190,6 +205,15 @@ function MandantenMaske() {
         newErrors.mietbeginn = "Mietbeginn ist erforderlich.";
       if (!formData.vertragsart)
         newErrors.vertragsart = "Bitte wählen Sie die Vertragsart.";
+      if (formData.vertragsart === "Befristet") {
+        if (!formData.mietende)
+          newErrors.mietende = "Bitte geben Sie das Mietende an.";
+        if (!formData.befristungsgrund)
+          newErrors.befristungsgrund = "Bitte wählen Sie den Befristungsgrund.";
+        if (!formData.befristungsgrund_text)
+          newErrors.befristungsgrund_text =
+            "Bitte begründen Sie die Befristung.";
+      }
     }
 
     if (step === 4) {
@@ -231,6 +255,8 @@ function MandantenMaske() {
         newErrors.kautionZahlweise = "Bitte wählen Sie die Zahlweise.";
       if (!formData.kautionsform)
         newErrors.kautionsform = "Bitte wählen Sie die Kautionsform.";
+      if (!formData.uebergabedatum)
+        newErrors.uebergabedatum = "Bitte wählen Sie das Übergabedatum.";
     }
 
     setErrors(newErrors);
@@ -887,6 +913,68 @@ function MandantenMaske() {
 
             <div className="field-v2">
               <label>
+                Übergabeprotokoll <span className="required">*</span>
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={formData.uebergabeprotokoll === true}
+                  onChange={(e) =>
+                    updateFormData("uebergabeprotokoll", e.target.checked)
+                  }
+                />
+                <span>Ja, Protokoll wird bei Übergabe geführt</span>
+              </label>
+              {errors.uebergabeprotokoll && (
+                <div className="error-text">{errors.uebergabeprotokoll}</div>
+              )}
+            </div>
+
+            <div className="field-v2">
+              <label>
+                Umgebungslärm / Besonderheiten <span className="required">*</span>
+              </label>
+              <select
+                className={`select ${errors.laerm ? "error" : ""}`}
+                value={formData.laerm}
+                onChange={(e) => updateFormData("laerm", e.target.value)}
+              >
+                <option value="">Bitte wählen...</option>
+                <option>keine besonderen Lärmquellen</option>
+                <option>Straßen- / Verkehrslärm</option>
+                <option>Fluglärm</option>
+                <option>Bahn- / Tramverkehr</option>
+                <option>Gastronomie / Clubbetrieb</option>
+                <option>Sonstige Hinweise</option>
+              </select>
+              {errors.laerm && <div className="error-text">{errors.laerm}</div>}
+            </div>
+
+            <div className="field-v2">
+              <label>
+                Schlüsselarten <span className="required">*</span>
+              </label>
+              <div className="checkbox-group-v2">
+                {["Wohnungsschlüssel", "Haustür", "Keller", "Briefkasten", "Tiefgarage / Stellplatz"].map(
+                  (option) => (
+                    <label key={option} className="checkbox-label">
+                      <input
+                        type="checkbox"
+                        checked={formData.schluessel_arten.includes(option)}
+                        onChange={() => toggleSelection("schluessel_arten", option)}
+                      />
+                      <span>{option}</span>
+                    </label>
+                  )
+                )}
+              </div>
+              {errors.schluessel_arten && (
+                <div className="error-text">{errors.schluessel_arten}</div>
+              )}
+            </div>
+
+            <div className="field-v2">
+              <label>
                 Gesamtanzahl Schlüssel <span className="required">*</span>
               </label>
               <input
@@ -942,6 +1030,67 @@ function MandantenMaske() {
                 <div className="error-text">{errors.vertragsart}</div>
               )}
             </div>
+
+            {formData.vertragsart === "Befristet" && (
+              <div className="highlight-box">
+                <div className="field-v2">
+                  <label>
+                    Mietende <span className="required">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    className={`input ${errors.mietende ? "error" : ""}`}
+                    value={formData.mietende}
+                    onChange={(e) => updateFormData("mietende", e.target.value)}
+                  />
+                  {errors.mietende && (
+                    <div className="error-text">{errors.mietende}</div>
+                  )}
+                </div>
+
+                <div className="field-v2">
+                  <label>
+                    Befristungsgrund <span className="required">*</span>
+                  </label>
+                  <select
+                    className={`select ${errors.befristungsgrund ? "error" : ""}`}
+                    value={formData.befristungsgrund}
+                    onChange={(e) =>
+                      updateFormData("befristungsgrund", e.target.value)
+                    }
+                  >
+                    <option value="">Bitte wählen...</option>
+                    <option value="Eigenbedarf">Eigenbedarf nach Rückkehr</option>
+                    <option value="Dienstlich">Dienstliche Versetzung</option>
+                    <option value="Sanierung">Geplante Sanierung/Umbau</option>
+                    <option value="Verkauf">Geplanter Verkauf</option>
+                    <option value="Nutzungswechsel">Geplanter Nutzungswechsel</option>
+                    <option value="Sonstiges">Sonstiger Grund</option>
+                  </select>
+                  {errors.befristungsgrund && (
+                    <div className="error-text">{errors.befristungsgrund}</div>
+                  )}
+                </div>
+
+                <div className="field-v2">
+                  <label>
+                    Begründung der Befristung <span className="required">*</span>
+                  </label>
+                  <textarea
+                    className={`textarea ${errors.befristungsgrund_text ? "error" : ""}`}
+                    value={formData.befristungsgrund_text}
+                    onChange={(e) =>
+                      updateFormData("befristungsgrund_text", e.target.value)
+                    }
+                    rows="3"
+                    placeholder="Bitte geben Sie die gesetzlich erforderliche Begründung an"
+                  ></textarea>
+                  {errors.befristungsgrund_text && (
+                    <div className="error-text">{errors.befristungsgrund_text}</div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         );
       case 4:
@@ -1275,6 +1424,68 @@ function MandantenMaske() {
                 )}
               </div>
             )}
+
+            <div className="form-group">
+              <label className="label">
+                Bauliche Veränderungen <span className="required">*</span>
+              </label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="zustimmung"
+                    checked={formData.bauveraenderung === "zustimmung"}
+                    onChange={(e) =>
+                      updateFormData("bauveraenderung", e.target.value)
+                    }
+                  />
+                  Nur mit vorheriger Zustimmung
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="nicht_erlaubt"
+                    checked={formData.bauveraenderung === "nicht_erlaubt"}
+                    onChange={(e) =>
+                      updateFormData("bauveraenderung", e.target.value)
+                    }
+                  />
+                  Nicht erlaubt (außer Kleinigkeiten)
+                </label>
+              </div>
+              {errors.bauveraenderung && (
+                <div className="error-text">{errors.bauveraenderung}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Besichtigungen <span className="required">*</span>
+              </label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="terminabstimmung"
+                    checked={formData.besichtigung === "terminabstimmung"}
+                    onChange={(e) => updateFormData("besichtigung", e.target.value)}
+                  />
+                  Mit rechtzeitiger Terminabstimmung
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="kurzfristig"
+                    checked={formData.besichtigung === "kurzfristig"}
+                    onChange={(e) => updateFormData("besichtigung", e.target.value)}
+                  />
+                  Kurzfristig bei berechtigtem Anlass
+                </label>
+              </div>
+              {errors.besichtigung && (
+                <div className="error-text">{errors.besichtigung}</div>
+              )}
+            </div>
           </div>
         );
       case 6:
@@ -1339,6 +1550,21 @@ function MandantenMaske() {
                 <div className="error-text">{errors.kautionsform}</div>
               )}
             </div>
+
+            <div className="field-v2">
+              <label>
+                Übergabedatum <span className="required">*</span>
+              </label>
+              <input
+                type="date"
+                className={`input ${errors.uebergabedatum ? "error" : ""}`}
+                value={formData.uebergabedatum}
+                onChange={(e) => updateFormData("uebergabedatum", e.target.value)}
+              />
+              {errors.uebergabedatum && (
+                <div className="error-text">{errors.uebergabedatum}</div>
+              )}
+            </div>
           </div>
         );
       case 7:
@@ -1379,6 +1605,68 @@ function MandantenMaske() {
                 <span className="summary-label">Wohnfläche</span>
                 <span className="summary-value">{formData.wohnflaeche || "-"}</span>
               </div>
+            </div>
+
+            <div className="summary-section-v2">
+              <div className="summary-title">Zustand & Schlüssel</div>
+              <div className="summary-row">
+                <span className="summary-label">Zustand</span>
+                <span className="summary-value">{formData.zustandBeiUebergabe || "-"}</span>
+              </div>
+              <div className="summary-row">
+                <span className="summary-label">Übergabeprotokoll</span>
+                <span className="summary-value">
+                  {formData.uebergabeprotokoll === null
+                    ? "-"
+                    : formData.uebergabeprotokoll
+                      ? "Ja"
+                      : "Nein"}
+                </span>
+              </div>
+              <div className="summary-row">
+                <span className="summary-label">Lärm / Umgebung</span>
+                <span className="summary-value">{formData.laerm || "-"}</span>
+              </div>
+              <div className="summary-row">
+                <span className="summary-label">Schlüsselarten</span>
+                <span className="summary-value">
+                  {formData.schluessel_arten?.length
+                    ? formData.schluessel_arten.join(", ")
+                    : "-"}
+                </span>
+              </div>
+              <div className="summary-row">
+                <span className="summary-label">Gesamtanzahl</span>
+                <span className="summary-value">{formData.schluesselGesamtzahl || "-"}</span>
+              </div>
+            </div>
+
+            <div className="summary-section-v2">
+              <div className="summary-title">Mietzeit</div>
+              <div className="summary-row">
+                <span className="summary-label">Mietbeginn</span>
+                <span className="summary-value">{formData.mietbeginn || "-"}</span>
+              </div>
+              <div className="summary-row">
+                <span className="summary-label">Vertragsart</span>
+                <span className="summary-value">{formData.vertragsart || "-"}</span>
+              </div>
+              {formData.vertragsart === "Befristet" && (
+                <>
+                  <div className="summary-row">
+                    <span className="summary-label">Mietende</span>
+                    <span className="summary-value">{formData.mietende || "-"}</span>
+                  </div>
+                  <div className="summary-row">
+                    <span className="summary-label">Befristungsgrund</span>
+                    <span className="summary-value">{formData.befristungsgrund || "-"}</span>
+                  </div>
+                  <div className="summary-row">
+                    <span className="summary-label">Begründung</span>
+                    <span className="summary-value">{formData.befristungsgrund_text || "-"}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="summary-section-v2">
@@ -1464,11 +1752,13 @@ function AnwaltsMaske() {
   const [downloadUrl, setDownloadUrl] = useState("");
   const [apiError, setApiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     vertragsartFinal: "",
     kuendigungsverzichtJahre: "0",
     indexmiete557b: "",
     staffelmiete: "",
+    staffelmieteSchedule: "",
     faelligkeit: "",
     mietanpassung: "",
     mpbStatus: "",
@@ -1486,10 +1776,22 @@ function AnwaltsMaske() {
     untervermietungKlausel: "",
     tierhaltungTon: "",
     srModell: "",
+    sr_zuschuss: "",
+    sr_zuschuss_betrag: "",
+    sr_mietfrei: "",
+    sr_mietfrei_monate: "",
     kleinrepJeVorgang: "",
+    kleinrep_jahr: "",
+    endrueckgabe: "",
     haftung536a: "",
+    bauveraenderung: "",
+    besichtigung: "",
+    umgebung_laerm: "",
+    aufrechnung: "",
+    veraeusserung: "",
     energieausweisEinbindung: "",
     dsgvoBeiblatt: "",
+    anlagen: [],
     bearbeiter: "",
     freigabe: "",
     // optional tenant contact (only in lawyer view)
@@ -1646,6 +1948,13 @@ function AnwaltsMaske() {
 
   const updateFormData = (field, value) => {
     setFormData((prev) => enforceExclusivity({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => {
+        const clone = { ...prev };
+        delete clone[field];
+        return clone;
+      });
+    }
   };
 
   const toggleArrayValue = (field, value) => {
@@ -1657,13 +1966,117 @@ function AnwaltsMaske() {
         : [...current, value];
       return enforceExclusivity({ ...prev, [field]: nextValues });
     });
+    if (errors[field]) {
+      setErrors((prev) => {
+        const clone = { ...prev };
+        delete clone[field];
+        return clone;
+      });
+    }
+  };
+
+  const buildStepErrors = (step) => {
+    const stepErrors = {};
+
+    if (step === 1) {
+      if (!formData.vertragsartFinal)
+        stepErrors.vertragsartFinal = "Bitte wählen Sie die Vertragsart.";
+    }
+
+    if (step === 2) {
+      if (!formData.mietanpassung)
+        stepErrors.mietanpassung = "Bitte wählen Sie die Mietanpassung.";
+      if (
+        formData.mietanpassung === "staffel" &&
+        !formData.staffelmieteSchedule
+      )
+        stepErrors.staffelmieteSchedule =
+          "Bitte tragen Sie den Staffelmiete-Zeitplan ein.";
+    }
+
+    if (step === 3) {
+      if (!formData.bauveraenderung)
+        stepErrors.bauveraenderung =
+          "Bitte wählen Sie die Regelung zu baulichen Veränderungen.";
+      if (!formData.besichtigung)
+        stepErrors.besichtigung =
+          "Bitte wählen Sie die Besichtigungsregelung.";
+    }
+
+    if (step === 4) {
+      if (!formData.srModell)
+        stepErrors.srModell = "Bitte wählen Sie ein SR-Modell.";
+      if (!formData.kleinrepJeVorgang)
+        stepErrors.kleinrepJeVorgang =
+          "Bitte wählen Sie die Kleinreparatur-Grenze je Vorgang.";
+      if (!formData.kleinrep_jahr)
+        stepErrors.kleinrep_jahr =
+          "Bitte wählen Sie die Jahresobergrenze für Kleinreparaturen.";
+      if (!formData.endrueckgabe)
+        stepErrors.endrueckgabe =
+          "Bitte wählen Sie die Regelung zur Endrückgabe.";
+      if (!formData.sr_zuschuss)
+        stepErrors.sr_zuschuss = "Bitte wählen Sie die SR-Zuschussregel.";
+      if (formData.sr_zuschuss === "ja" && !formData.sr_zuschuss_betrag)
+        stepErrors.sr_zuschuss_betrag =
+          "Bitte geben Sie den Zuschussbetrag an.";
+      if (!formData.sr_mietfrei)
+        stepErrors.sr_mietfrei = "Bitte wählen Sie die Mietfrei-Option.";
+      if (formData.sr_mietfrei === "ja" && !formData.sr_mietfrei_monate)
+        stepErrors.sr_mietfrei_monate =
+          "Bitte geben Sie die Anzahl der Monate an.";
+    }
+
+    if (step === 5) {
+      if (!formData.haftung536a)
+        stepErrors.haftung536a = "Bitte wählen Sie die Haftungsregel.";
+      if (!formData.umgebung_laerm)
+        stepErrors.umgebung_laerm = "Bitte wählen Sie die Option zu Umgebungslärm.";
+      if (!formData.aufrechnung)
+        stepErrors.aufrechnung = "Bitte treffen Sie eine Aufrechnungsregel.";
+      if (!formData.veraeusserung)
+        stepErrors.veraeusserung = "Bitte wählen Sie die Veräußerungsregel.";
+    }
+
+    if (step === 6) {
+      if (!formData.energieausweisEinbindung)
+        stepErrors.energieausweisEinbindung =
+          "Bitte wählen Sie die Option zum Energieausweis.";
+      if (!formData.dsgvoBeiblatt)
+        stepErrors.dsgvoBeiblatt = "Bitte wählen Sie die DSGVO-Angabe.";
+      if (!formData.bearbeiter)
+        stepErrors.bearbeiter = "Bitte tragen Sie den Bearbeiter ein.";
+      if (!formData.freigabe)
+        stepErrors.freigabe = "Bitte wählen Sie die Freigabe.";
+      if (!formData.anlagen?.length)
+        stepErrors.anlagen = "Bitte wählen Sie die Anlagen aus.";
+    }
+
+    return stepErrors;
+  };
+
+  const validateStep = (step) => {
+    const stepErrors = buildStepErrors(step);
+    setErrors(stepErrors);
+    return Object.keys(stepErrors).length === 0;
+  };
+
+  const validateAll = () => {
+    const combined = {};
+    steps.forEach((_, idx) => {
+      Object.assign(combined, buildStepErrors(idx));
+    });
+    setErrors(combined);
+    return Object.keys(combined).length === 0;
   };
 
   const nextStep = () => {
-    setCurrentStep((prev) =>
-      Math.min(prev + 1, steps.length - 1)
-    );
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (validateStep(currentStep)) {
+      setCurrentStep((prev) =>
+        Math.min(prev + 1, steps.length - 1)
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const prevStep = () => {
@@ -1674,6 +2087,10 @@ function AnwaltsMaske() {
   const exportFinalJSON = async () => {
     if (!mandantendaten) {
       alert("Es wurden keine Mandantendaten geladen.");
+      return;
+    }
+
+    if (!validateAll()) {
       return;
     }
 
@@ -1946,6 +2363,9 @@ function AnwaltsMaske() {
                   Befristet (mit § 575-Grund aus Mandantendaten)
                 </label>
               </div>
+              {errors.vertragsartFinal && (
+                <div className="error-text">{errors.vertragsartFinal}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2031,7 +2451,30 @@ function AnwaltsMaske() {
               <p className="help-text">
                 Indexmiete und Staffelmiete schließen sich gegenseitig aus
               </p>
+              {errors.mietanpassung && (
+                <div className="error-text">{errors.mietanpassung}</div>
+              )}
             </div>
+
+            {formData.mietanpassung === "staffel" && (
+              <div className="field-v2">
+                <label>
+                  Staffelmiete - Zeitplan <span className="required">*</span>
+                </label>
+                <textarea
+                  className={`textarea ${errors.staffelmieteSchedule ? "error" : ""}`}
+                  rows="3"
+                  placeholder="z.B. ab 01.01.2025 +50 EUR; ab 01.01.2026 +50 EUR"
+                  value={formData.staffelmieteSchedule}
+                  onChange={(e) =>
+                    updateFormData("staffelmieteSchedule", e.target.value)
+                  }
+                ></textarea>
+                {errors.staffelmieteSchedule && (
+                  <div className="error-text">{errors.staffelmieteSchedule}</div>
+                )}
+              </div>
+            )}
 
             {showMietpreisbremse && (
               <div
@@ -2503,6 +2946,103 @@ function AnwaltsMaske() {
                   Fristenplan 5/7/10 Jahre (Risiko!)
                 </label>
               </div>
+              {errors.srModell && (
+                <div className="error-text">{errors.srModell}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                SR-Zuschuss / Mietabsenkung <span className="required">*</span>
+              </label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="ja"
+                    checked={formData.sr_zuschuss === "ja"}
+                    onChange={(e) => updateFormData("sr_zuschuss", e.target.value)}
+                  />
+                  Ja, Zuschuss vereinbart
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="nein"
+                    checked={formData.sr_zuschuss === "nein"}
+                    onChange={(e) => updateFormData("sr_zuschuss", e.target.value)}
+                  />
+                  Nein
+                </label>
+              </div>
+              {errors.sr_zuschuss && (
+                <div className="error-text">{errors.sr_zuschuss}</div>
+              )}
+              {formData.sr_zuschuss === "ja" && (
+                <div className="field-v2" style={{ marginTop: "10px" }}>
+                  <label>
+                    Zuschussbetrag (EUR) <span className="required">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    className={`input ${errors.sr_zuschuss_betrag ? "error" : ""}`}
+                    value={formData.sr_zuschuss_betrag}
+                    onChange={(e) =>
+                      updateFormData("sr_zuschuss_betrag", e.target.value)
+                    }
+                  />
+                  {errors.sr_zuschuss_betrag && (
+                    <div className="error-text">{errors.sr_zuschuss_betrag}</div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Mietfreie Zeit statt SR <span className="required">*</span>
+              </label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="ja"
+                    checked={formData.sr_mietfrei === "ja"}
+                    onChange={(e) => updateFormData("sr_mietfrei", e.target.value)}
+                  />
+                  Ja
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="nein"
+                    checked={formData.sr_mietfrei === "nein"}
+                    onChange={(e) => updateFormData("sr_mietfrei", e.target.value)}
+                  />
+                  Nein
+                </label>
+              </div>
+              {errors.sr_mietfrei && (
+                <div className="error-text">{errors.sr_mietfrei}</div>
+              )}
+              {formData.sr_mietfrei === "ja" && (
+                <div className="field-v2" style={{ marginTop: "10px" }}>
+                  <label>
+                    Mietfreie Monate <span className="required">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    className={`input ${errors.sr_mietfrei_monate ? "error" : ""}`}
+                    value={formData.sr_mietfrei_monate}
+                    onChange={(e) =>
+                      updateFormData("sr_mietfrei_monate", e.target.value)
+                    }
+                  />
+                  {errors.sr_mietfrei_monate && (
+                    <div className="error-text">{errors.sr_mietfrei_monate}</div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2525,6 +3065,47 @@ function AnwaltsMaske() {
                 <option value="110">110 EUR</option>
                 <option value="120">120 EUR</option>
               </select>
+              {errors.kleinrepJeVorgang && (
+                <div className="error-text">{errors.kleinrepJeVorgang}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Kleinreparaturen - Jahresobergrenze <span className="required">*</span>
+              </label>
+              <select
+                className="select"
+                value={formData.kleinrep_jahr}
+                onChange={(e) => updateFormData("kleinrep_jahr", e.target.value)}
+              >
+                <option value="">Bitte wählen...</option>
+                <option value="6fach">6-fache Einzelfallgrenze</option>
+                <option value="8fach">8-fache Einzelfallgrenze</option>
+                <option value="individuell">Individuell</option>
+              </select>
+              {errors.kleinrep_jahr && (
+                <div className="error-text">{errors.kleinrep_jahr}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Endrückgabe <span className="required">*</span>
+              </label>
+              <select
+                className="select"
+                value={formData.endrueckgabe}
+                onChange={(e) => updateFormData("endrueckgabe", e.target.value)}
+              >
+                <option value="">Bitte wählen...</option>
+                <option value="besenrein">Besenrein / gereinigt</option>
+                <option value="wie_uebernommen">Wie übernommen</option>
+                <option value="individuell">Individuelle Vereinbarung</option>
+              </select>
+              {errors.endrueckgabe && (
+                <div className="error-text">{errors.endrueckgabe}</div>
+              )}
             </div>
           </div>
         );
@@ -2542,7 +3123,7 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className="select"
+                className={`select ${errors.haftung536a ? "error" : ""}`}
                 value={formData.haftung536a}
                 onChange={(e) =>
                   updateFormData(
@@ -2560,9 +3141,79 @@ function AnwaltsMaske() {
                   Generische Regelung
                 </option>
                 <option value="individuell">
-                  Individuell
-                </option>
+                Individuell
+              </option>
               </select>
+              {errors.haftung536a && (
+                <div className="error-text">{errors.haftung536a}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Umgebung / Lärm <span className="required">*</span>
+              </label>
+              <select
+                className={`select ${errors.umgebung_laerm ? "error" : ""}`}
+                value={formData.umgebung_laerm}
+                onChange={(e) => updateFormData("umgebung_laerm", e.target.value)}
+              >
+                <option value="">Bitte wählen...</option>
+                <option value="hinweis">Hinweis auf Lärmquellen aufnehmen</option>
+                <option value="keine">Keine besonderen Hinweise</option>
+                <option value="individuell">Individuell</option>
+              </select>
+              {errors.umgebung_laerm && (
+                <div className="error-text">{errors.umgebung_laerm}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Aufrechnung <span className="required">*</span>
+              </label>
+              <div className="radio-group">
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="nur_unbestritten"
+                    checked={formData.aufrechnung === "nur_unbestritten"}
+                    onChange={(e) => updateFormData("aufrechnung", e.target.value)}
+                  />
+                  Nur mit unbestrittenen/ rechtskräftigen Forderungen
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    value="erweitert"
+                    checked={formData.aufrechnung === "erweitert"}
+                    onChange={(e) => updateFormData("aufrechnung", e.target.value)}
+                  />
+                  Erweiterte Aufrechnung möglich
+                </label>
+              </div>
+              {errors.aufrechnung && (
+                <div className="error-text">{errors.aufrechnung}</div>
+              )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">
+                Veräußerung während Mietzeit <span className="required">*</span>
+              </label>
+              <select
+                className={`select ${errors.veraeusserung ? "error" : ""}`}
+                value={formData.veraeusserung}
+                onChange={(e) => updateFormData("veraeusserung", e.target.value)}
+              >
+                <option value="">Bitte wählen...</option>
+                <option value="kuendigungsausschluss">Kündigungsausschluss vereinbaren</option>
+                <option value="weitergabe">Vertrag geht über (§ 566 BGB)</option>
+                <option value="individuell">Individuelle Regelung</option>
+              </select>
+              {errors.veraeusserung && (
+                <div className="error-text">{errors.veraeusserung}</div>
+              )}
             </div>
           </div>
         );
@@ -2573,6 +3224,29 @@ function AnwaltsMaske() {
             <h2 className="section-title">
               Anlagen & Prüfung
             </h2>
+
+            <div className="form-group">
+              <label className="label">
+                Anlagen <span className="required">*</span>
+              </label>
+              <div className="checkbox-group-v2">
+                {["Energieausweis", "Hausordnung", "Übergabeprotokoll", "WEG-Unterlagen", "Sonstige Anlagen"].map(
+                  (option) => (
+                    <label key={option} className="checkbox-option-v2">
+                      <input
+                        type="checkbox"
+                        checked={formData.anlagen.includes(option)}
+                        onChange={() => toggleArrayValue("anlagen", option)}
+                      />
+                      <span>{option}</span>
+                    </label>
+                  )
+                )}
+              </div>
+              {errors.anlagen && (
+                <div className="error-text">{errors.anlagen}</div>
+              )}
+            </div>
 
             <div className="form-group">
               <label className="label">
@@ -2615,6 +3289,11 @@ function AnwaltsMaske() {
                   Kenntnisnahme verpflichtend
                 </label>
               </div>
+              {errors.energieausweisEinbindung && (
+                <div className="error-text">
+                  {errors.energieausweisEinbindung}
+                </div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2652,6 +3331,9 @@ function AnwaltsMaske() {
                   Nein
                 </label>
               </div>
+              {errors.dsgvoBeiblatt && (
+                <div className="error-text">{errors.dsgvoBeiblatt}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2661,7 +3343,7 @@ function AnwaltsMaske() {
               </label>
               <input
                 type="text"
-                className="input"
+                className={`input ${errors.bearbeiter ? "error" : ""}`}
                 value={formData.bearbeiter}
                 onChange={(e) =>
                   updateFormData(
@@ -2671,6 +3353,9 @@ function AnwaltsMaske() {
                 }
                 placeholder="z.B. RAin Dr. Müller"
               />
+              {errors.bearbeiter && (
+                <div className="error-text">{errors.bearbeiter}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2699,15 +3384,18 @@ function AnwaltsMaske() {
                     value="Nein"
                     checked={formData.freigabe === "Nein"}
                     onChange={(e) =>
-                      updateFormData(
-                        "freigabe",
-                        e.target.value
-                      )
-                    }
-                  />
-                  Nein - noch Rückfragen
-                </label>
+                    updateFormData(
+                      "freigabe",
+                      e.target.value
+                    )
+                  }
+                />
+                Nein - noch Rückfragen
+              </label>
               </div>
+              {errors.freigabe && (
+                <div className="error-text">{errors.freigabe}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2805,6 +3493,15 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
+              {formData.mietanpassung === "staffel" &&
+                formData.staffelmieteSchedule && (
+                  <div className="summary-field">
+                    <span className="summary-label">Staffelmietplan:</span>
+                    <span className="summary-value">
+                      {formData.staffelmieteSchedule}
+                    </span>
+                  </div>
+                )}
               {formData.mpbStatus && (
                 <div className="summary-field">
                   <span className="summary-label">
@@ -2896,6 +3593,36 @@ function AnwaltsMaske() {
             </div>
 
             <div className="summary-section">
+              <div className="summary-title">Nutzung & Zutritt</div>
+              {formData.untervermietungKlausel && (
+                <div className="summary-field">
+                  <span className="summary-label">Untervermietung:</span>
+                  <span className="summary-value">
+                    {formData.untervermietungKlausel}
+                  </span>
+                </div>
+              )}
+              {formData.tierhaltungTon && (
+                <div className="summary-field">
+                  <span className="summary-label">Tierhaltung:</span>
+                  <span className="summary-value">{formData.tierhaltungTon}</span>
+                </div>
+              )}
+              {formData.bauveraenderung && (
+                <div className="summary-field">
+                  <span className="summary-label">Bauliche Veränderungen:</span>
+                  <span className="summary-value">{formData.bauveraenderung}</span>
+                </div>
+              )}
+              {formData.besichtigung && (
+                <div className="summary-field">
+                  <span className="summary-label">Besichtigung:</span>
+                  <span className="summary-value">{formData.besichtigung}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="summary-section">
               <div className="summary-title">
                 Instandhaltung
               </div>
@@ -2919,10 +3646,78 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
+              {formData.kleinrep_jahr && (
+                <div className="summary-field">
+                  <span className="summary-label">Jahresobergrenze:</span>
+                  <span className="summary-value">{formData.kleinrep_jahr}</span>
+                </div>
+              )}
+              {formData.sr_zuschuss && (
+                <div className="summary-field">
+                  <span className="summary-label">SR-Zuschuss:</span>
+                  <span className="summary-value">
+                    {formData.sr_zuschuss === "ja"
+                      ? formData.sr_zuschuss_betrag
+                        ? `${formData.sr_zuschuss_betrag} EUR`
+                        : "Ja"
+                      : "Nein"}
+                  </span>
+                </div>
+              )}
+              {formData.sr_mietfrei && (
+                <div className="summary-field">
+                  <span className="summary-label">Mietfrei:</span>
+                  <span className="summary-value">
+                    {formData.sr_mietfrei === "ja"
+                      ? `${formData.sr_mietfrei_monate || 0} Monate`
+                      : "Nein"}
+                  </span>
+                </div>
+              )}
+              {formData.endrueckgabe && (
+                <div className="summary-field">
+                  <span className="summary-label">Endrückgabe:</span>
+                  <span className="summary-value">{formData.endrueckgabe}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="summary-section">
+              <div className="summary-title">Haftung & Veräußerung</div>
+              {formData.haftung536a && (
+                <div className="summary-field">
+                  <span className="summary-label">Haftung §536a:</span>
+                  <span className="summary-value">{formData.haftung536a}</span>
+                </div>
+              )}
+              {formData.umgebung_laerm && (
+                <div className="summary-field">
+                  <span className="summary-label">Umgebung / Lärm:</span>
+                  <span className="summary-value">{formData.umgebung_laerm}</span>
+                </div>
+              )}
+              {formData.aufrechnung && (
+                <div className="summary-field">
+                  <span className="summary-label">Aufrechnung:</span>
+                  <span className="summary-value">{formData.aufrechnung}</span>
+                </div>
+              )}
+              {formData.veraeusserung && (
+                <div className="summary-field">
+                  <span className="summary-label">Veräußerung:</span>
+                  <span className="summary-value">{formData.veraeusserung}</span>
+                </div>
+              )}
             </div>
 
             <div className="summary-section">
               <div className="summary-title">Prüfung</div>
+              {formData.anlagen?.length > 0 && (
+                <div className="summary-field">
+                  <span className="summary-label">Anlagen:</span>
+                  <span className="summary-value">{formData.anlagen.join(", ")}</span>
+                </div>
+              )}
               {formData.bearbeiter && (
                 <div className="summary-field">
                   <span className="summary-label">
