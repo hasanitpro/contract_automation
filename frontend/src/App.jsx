@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const API_BASE = "http://localhost:7071/api";
 
@@ -1756,6 +1756,13 @@ function AnwaltsMaske() {
 
     return formatCurrency(total);
   };
+
+  const combinedMasksDownloadHref = useMemo(() => {
+    if (!mandantendaten) return null;
+    const combined = { maskA: mandantendaten, maskB: formData };
+    const json = JSON.stringify(combined, null, 2);
+    return `data:application/json;charset=utf-8,${encodeURIComponent(json)}`;
+  }, [mandantendaten, formData]);
 
   const renderSummaryField = (label, value, formatter) => {
     const displayValue =
@@ -3670,6 +3677,23 @@ function AnwaltsMaske() {
                 </div>
               )}
             </div>
+
+            {combinedMasksDownloadHref && (
+              <div className="summary-section">
+                <div className="summary-title">Datenexport</div>
+                <p className="help-text" style={{ marginBottom: "0.75rem" }}>
+                  Kombinierte Masken A und B als JSON-Datei speichern.
+                </p>
+                <a
+                  href={combinedMasksDownloadHref}
+                  download="masken-a-und-b.json"
+                  className="button button-secondary"
+                  style={{ width: "100%", textAlign: "center" }}
+                >
+                  <FileText /> Mask A & B als JSON herunterladen
+                </a>
+              </div>
+            )}
 
             {formData.freigabe === "Ja" && (
               <div
