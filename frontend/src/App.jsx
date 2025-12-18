@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 const API_BASE = "http://localhost:7071/api";
+const TEMPLATE_PATH = "source_of_truth/contract-template-annotated.html";
 
 const ChevronRight = () => <span>→</span>;
 const ChevronLeft = () => <span>←</span>;
@@ -1827,6 +1828,199 @@ function AnwaltsMaske() {
     return `${num.toFixed(2)} EUR`;
   };
 
+  const formatEuroValue = (value) => {
+    const num = parseFloat(value ?? "");
+    if (!Number.isFinite(num)) return "";
+    return new Intl.NumberFormat("de-DE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num);
+  };
+
+  const formatDecimalValue = (value) => {
+    const num = parseFloat(value ?? "");
+    if (!Number.isFinite(num)) return "";
+    return new Intl.NumberFormat("de-DE", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(num);
+  };
+
+  const deriveCityFromAddress = (address = "") => {
+    if (!address) return "";
+    const parts = address.split(",").map((part) => part.trim()).filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : "";
+  };
+
+  const deriveParties = (maskAData = {}) => {
+    const baseParty = (name, address, iban, vat, tax, representative) => ({
+      name: name || "",
+      address: address || "",
+      iban: iban || "",
+      vat: vat || "",
+      tax: tax || "",
+      representative: representative || "",
+    });
+
+    const ownRepresentative =
+      maskAData.wird_vertreten === "Ja" ? maskAData.vertreten_durch : "";
+    const counterRepresentative =
+      maskAData.gegenpartei_vertreten_durch || "";
+
+    const own = baseParty(
+      maskAData.eigene_name,
+      maskAData.eigene_anschrift,
+      maskAData.eigene_iban,
+      maskAData.ust_id,
+      maskAData.steuernummer,
+      ownRepresentative
+    );
+
+    const counterparty = baseParty(
+      maskAData.gegenpartei_name,
+      maskAData.gegenpartei_anschrift,
+      maskAData.zahler_iban,
+      "",
+      "",
+      counterRepresentative
+    );
+
+    if (maskAData.rolle === "Vermieter") {
+      return { landlord: own, tenant: counterparty };
+    }
+
+    if (maskAData.rolle === "Mieter") {
+      return { landlord: counterparty.name ? counterparty : own, tenant: own };
+    }
+
+    return { landlord: own, tenant: counterparty };
+  };
+
+  const combineHousingDescription = (maskAData = {}) => {
+    const parts = [];
+    if (maskAData.wohnung_bez) parts.push(maskAData.wohnung_bez);
+    else if (maskAData.wohnungsart) parts.push(maskAData.wohnungsart);
+
+    const extras = [
+      ...(maskAData.nebenraeume || []),
+      ...(maskAData.aussenbereich || []),
+    ]
+      .filter(Boolean)
+      .join(", ");
+
+    if (extras) parts.push(extras);
+    return parts.join("; ");
+  };
+
+  const buildZusatzBkText = (maskBData = {}) => {
+    const items = (maskBData.bk_zusatz_positionen || []).filter(Boolean);
+    if (!items.length)
+      return "Es werden keine zusätzlichen Positionen vereinbart.";
+    return items.map((item, idx) => `${idx + 1}. ${item}`).join("\n");
+  };
+
+  const deriveZustandText = (maskAData = {}) => {
+    const mapping = {
+      renoviert: "renoviert",
+      "neu erstellt": "ist neu erstellt",
+      "gebraucht/vertragsgemäß": "in gebrauchtem, vertragsgemäßem Zustand",
+    };
+    return mapping[maskAData.zustand] || maskAData.zustand || "";
+  };
+
+  const buildAnnexInfo = (annexes = []) => {
+    const list = (annexes || []).filter(Boolean);
+    const formattedList = list
+      .map((item, idx) => `Anlage MV.${idx + 1}: ${item}`)
+      .join("\n");
+
+    const findIndex = (needle) =>
+      list.findIndex((item) => item.toLowerCase().includes(needle));
+    const xIndex = findIndex("dsgvo");
+    const yIndex = findIndex("energieausweis");
+
+    return {
+      formattedList,
+      x: xIndex >= 0 ? xIndex + 1 : "",
+      y: yIndex >= 0 ? yIndex + 1 : "",
+    };
+  };
+
+  const buildPlaceholderMapping = (maskAData = {}, maskBData = {}) => {
+    const maskA = normalizeMaskAKeys(maskAData);
+    const maskB = normalizeMaskBKeys(maskBData);
+    const parties = deriveParties(maskA);
+    const annexInfo = buildAnnexInfo(maskB.anlagen || []);
+
+    const keyCount = maskA.schluessel_anzahl || "";
+    const depositMonths = maskA.kaution || "";
+    const grundmiete = parseFloat(maskA.grundmiete || "0") || 0;
+    const depositAmount = grundmiete * (parseFloat(depositMonths || "0") || 0);
+    const formattedDeposit = depositAmount
+      ? `${formatEuroValue(depositAmount)} EUR`
+      : "";
+
+    const ausstattung = () => {
+      if (Array.isArray(maskA.ausstattung)) {
+        return maskA.ausstattung.filter(Boolean).join(", ") || "keine";
+      }
+      return maskA.ausstattung || "keine";
+    };
+
+    const srAmount = maskB.sr_zuschuss_betrag || maskB.sr_zuschuss || "";
+
+    return {
+      AMOUNT: maskB.mpb_vormiete_betrag || "",
+      ANZAHL: keyCount || depositMonths || "",
+      ARTEN: (maskA.schluessel_arten || []).filter(Boolean).join(", "),
+      AUSSTATTUNG: ausstattung(),
+      BETRAG: srAmount || formattedDeposit,
+      BETRAG_JE: maskB.kleinrep_je_vorgang || "",
+      COMPLETE_ANNEX_LIST: annexInfo.formattedList,
+      CUSTOM_PET_TEXT: maskA.tiere_details || "",
+      CUSTOM_SUBLETTING_TEXT: maskB.untervermietung_klausel || "",
+      DATE: maskA.bezugsfertig || "",
+      DATUM: maskB.bearbeitungsdatum || new Date().toLocaleDateString("de-DE"),
+      DETAILS: maskA.tiere_details || "",
+      ENDARBEITEN_LISTE: maskB.endrueckgabe || "",
+      FLAECHE: formatDecimalValue(maskA.wohnflaeche),
+      IBAN:
+        parties.landlord.iban ||
+        maskA.eigene_iban ||
+        maskA.zahler_iban ||
+        "",
+      JAHRE: maskB.kuendigungsverzicht || "",
+      LANDLORD_ADDRESS: parties.landlord.address,
+      LANDLORD_NAME: parties.landlord.name,
+      LANDLORD_REPRESENTATIVE: parties.landlord.representative,
+      MEA: maskA.mea || "",
+      MIETBEGINN: maskA.mietbeginn || "",
+      MONATE: maskB.sr_mietfrei_monate || "",
+      OBERGRENZE: maskB.kleinrep_jahr || "",
+      OBJEKTADRESSE: maskA.objektadresse || "",
+      ORT: deriveCityFromAddress(
+        maskA.objektadresse ||
+          maskB.ro_objektadresse ||
+          parties.landlord.address ||
+          parties.tenant.address
+      ),
+      REPRESENTATIVE_NAME:
+        parties.landlord.representative || parties.tenant.representative || "",
+      STAFFELMIETE_SCHEDULE: maskB.staffelmiete_schedule || "",
+      TAX_NUMBER: parties.landlord.tax,
+      TENANT_ADDRESS: parties.tenant.address,
+      TENANT_NAME: parties.tenant.name,
+      TENANT_REPRESENTATIVE: parties.tenant.representative,
+      VAT_ID: parties.landlord.vat,
+      WEG_TEXT: maskB.weg_verweis_schluessel || "",
+      WOHNUNG_BESCHREIBUNG: combineHousingDescription(maskA),
+      X: annexInfo.x,
+      Y: annexInfo.y,
+      ZUSATZ_BK: buildZusatzBkText(maskB),
+      ZUSTAND: deriveZustandText(maskA),
+    };
+  };
+
   const calculateImportedTotalRent = (maskAData = mandantendaten) => {
     if (!maskAData) return "-";
     const toNumber = (val) => parseFloat(val || "0") || 0;
@@ -2156,14 +2350,23 @@ function AnwaltsMaske() {
     setApiError("");
     setDownloadUrl("");
     setIsGenerating(true);
-    // backend still only needs maskA + maskB; extra fields are ignored
+
+    const normalizedMaskA = normalizeMaskAKeys(mandantendaten);
+    const normalizedMaskB = normalizeMaskBKeys(formData);
+    const placeholderMapping = buildPlaceholderMapping(
+      normalizedMaskA,
+      normalizedMaskB
+    );
+
     try {
       const res = await fetch(`${API_BASE}/generate_contract`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          maskA: mandantendaten,
-          maskB: formData,
+          maskA: normalizedMaskA,
+          maskB: normalizedMaskB,
+          templatePath: TEMPLATE_PATH,
+          placeholderMapping,
         }),
       });
 
@@ -3857,6 +4060,12 @@ function AnwaltsMaske() {
                 >
                   ✓ Freigabe erteilt – Vertrag kann erzeugt werden
                 </p>
+                <div className="info-box-v2" style={{ marginBottom: "0.75rem" }}>
+                  <p style={{ margin: 0 }}>
+                    Aktive Vorlage: <strong>{TEMPLATE_PATH}</strong>
+                  </p>
+                </div>
+
                 {downloadUrl ? (
                   <a
                     href={downloadUrl}
@@ -3902,6 +4111,9 @@ function AnwaltsMaske() {
             flexWrap: "wrap",
           }}
         >
+          <span className="status-pill info">
+            Vorlage: {TEMPLATE_PATH}
+          </span>
           <span
             className={`status-pill ${showImport
               ? "warning"
