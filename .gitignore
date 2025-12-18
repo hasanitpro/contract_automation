@@ -4,5 +4,4 @@ dist/
 .env.*
 .vscode/
 .DS_Store
-backend/templates/base_contract.docx
-backend/templates/*.docx
+backend/.venv/
