@@ -12,6 +12,43 @@ backend for generating contracts from templates.
 The backend lives in `backend/` and uses Azure Functions with Python 3.11.
 See `backend/README.md` for setup instructions and example requests.
 
+### Local Azure storage and Functions runtime
+
+Use the bundled `backend/local.settings.json` to run everything locally. The
+example values keep the frontend defaults working:
+
+- `AzureWebJobsStorage=UseDevelopmentStorage=true`
+- `MaskAInput=UseDevelopmentStorage=true;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;`
+- `ContractsBlobConnection=UseDevelopmentStorage=true;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;`
+- `ContractsContainer=contracts`
+- `TemplateBlobPath=templates/contract-template.docx`
+
+To start Azurite with both blob and table emulators (ports 10000 and 10002) in
+one terminal:
+
+```bash
+npx azurite --silent --blobHost 127.0.0.1 --tableHost 127.0.0.1
+```
+
+Then start the Functions host in another terminal from the `backend/` folder so
+it picks up `local.settings.json`:
+
+```bash
+cd backend
+func host start
+```
+
+If you access the backend from the frontend dev server (`http://localhost:5173`)
+you need a CORS allowlist entry on the Functions app. When running locally,
+start the host with the CORS flag:
+
+```bash
+func host start --cors http://localhost:5173 --cors-credentials
+```
+
+When deploying to Azure, add `http://localhost:5173` (or your Vite dev URL) to
+the app's allowed origins so the browser can call the Functions API.
+
 ## Frontend quick start
 The frontend is built with Vite and React. To start the dev server:
 
