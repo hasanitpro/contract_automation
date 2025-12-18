@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "MaskAInput": "UseDevelopmentStorage=true;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;",
+    "ContractsBlobConnection": "UseDevelopmentStorage=true;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;",
+    "ContractsContainer": "contracts",
+    "TemplateBlobPath": "templates/contract-template.docx"
+  }
+}
