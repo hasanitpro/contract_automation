@@ -6,7 +6,7 @@
       "direction": "in",
       "name": "req",
       "methods": ["post"],
-      "route": "contract/generate"
+      "route": "generate_contract"
     },
     {
       "type": "http",
