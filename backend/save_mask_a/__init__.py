@@ -8,7 +8,7 @@ from uuid import uuid4
 import azure.functions as func
 from azure.data.tables import UpdateMode
 
-from ..shared import (
+from shared import (
     ErrorResponse,
     SaveMaskAResponse,
     get_table_client,

@@ -8,7 +8,7 @@ from uuid import uuid4
 import azure.functions as func
 from azure.storage.blob import ContentSettings
 
-from ..shared import (
+from shared import (
     ErrorResponse,
     GenerateContractResponse,
     build_contract_context,
