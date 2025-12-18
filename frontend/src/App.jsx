@@ -2348,12 +2348,29 @@ function AnwaltsMaske() {
             return true;
           }
 
-          if (!mandantendaten?.bezugsfertig) return false;
+          const bezugsfertigRaw = mandantendaten?.bezugsfertig;
+          if (!bezugsfertigRaw) return false;
 
-          // Force a consistent date parse so the Mietpreisbremse hint appears
-          // reliably for Objekte vor dem 01.10.2014.
-          const parsedDate = new Date(`${mandantendaten.bezugsfertig}T00:00:00`);
-          if (Number.isNaN(parsedDate.getTime())) return false;
+          // Normalize the date so the Mietpreisbremse hint appears reliably,
+          // even if the imported JSON already contains a time component.
+          const normalizeBezugsfertig = (value) => {
+            const trimmed = typeof value === "string" ? value.trim() : "";
+            if (!trimmed) return null;
+
+            // Try the value as-is when it already contains a time marker to
+            // avoid producing an invalid string like "2024-01-01T00:00:00T00:00:00".
+            const hasTimeMarker = /[T\s]/.test(trimmed);
+            const primary = new Date(
+              hasTimeMarker ? trimmed : `${trimmed}T00:00:00`
+            );
+            if (!Number.isNaN(primary.getTime())) return primary;
+
+            const fallback = new Date(trimmed);
+            return Number.isNaN(fallback.getTime()) ? null : fallback;
+          };
+
+          const parsedDate = normalizeBezugsfertig(bezugsfertigRaw);
+          if (!parsedDate) return false;
 
           const cutoff = new Date("2014-10-01T00:00:00");
           return parsedDate <= cutoff;
