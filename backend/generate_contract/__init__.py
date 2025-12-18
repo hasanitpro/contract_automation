@@ -114,9 +114,6 @@ def _load_template(template_path: str, connection_string: str, container: str) -
         with open(template_path, "rb") as template_file:
             return os.path.splitext(template_path)[1].lower(), template_file.read()
 
-    if not connection_string:
-        raise TemplateProcessingError("Template storage connection is not configured.")
-
     blob_name = template_path.lstrip("/")
     container_name = container
     if "/" in blob_name:
@@ -125,14 +122,63 @@ def _load_template(template_path: str, connection_string: str, container: str) -
             container_name = maybe_container
             blob_name = remainder
 
-    blob_client = _get_blob_client(connection_string, container_name, blob_name)
+    storage_path = f"{container_name}/{blob_name}"
+
+    if not connection_string:
+        raise TemplateProcessingError(
+            "Template storage connection is not configured for "
+            f"'{storage_path}'. Verify the storage connection/environment values."
+        )
 
     try:
+        service_client = BlobServiceClient.from_connection_string(connection_string)
+    except AzureError as exc:
+        raise TemplateProcessingError(
+            "Failed to initialise template storage connection for "
+            f"'{storage_path}'. Verify the storage connection/environment values."
+        ) from exc
+
+    container_client = service_client.get_container_client(container_name)
+
+    try:
+        if not container_client.exists():
+            raise TemplateProcessingError(
+                "Template container '{container}' not found when retrieving "
+                "'{path}'. Verify the storage connection/environment values.".format(
+                    container=container_name, path=storage_path
+                )
+            )
+    except AzureError as exc:
+        raise TemplateProcessingError(
+            "Failed to access template container '{container}' for blob "
+            "'{blob}'. Verify the storage connection/environment values.".format(
+                container=container_name, blob=blob_name
+            )
+        ) from exc
+
+    blob_client = container_client.get_blob_client(blob_name)
+
+    try:
+        if not blob_client.exists():
+            raise TemplateProcessingError(
+                "Template blob '{blob}' was not found in container "
+                "'{container}'. Verify the blob path and storage "
+                "connection/environment values.".format(
+                    container=container_name, blob=blob_name
+                )
+            )
+
         template_bytes = blob_client.download_blob().readall()
     except ResourceNotFoundError as exc:
-        raise TemplateProcessingError("Template not found in storage.") from exc
+        raise TemplateProcessingError(
+            "Template '{path}' was not found in storage. Verify the blob path "
+            "and storage connection/environment values.".format(path=storage_path)
+        ) from exc
     except AzureError as exc:
-        raise TemplateProcessingError("Failed to download template from storage.") from exc
+        raise TemplateProcessingError(
+            "Failed to download template from storage path '{path}'. Verify the "
+            "storage connection/environment values.".format(path=storage_path)
+        ) from exc
 
     extension = os.path.splitext(template_path)[1].lower()
     return extension, template_bytes
