@@ -5,11 +5,11 @@ HTTP-triggered functions for contract generation, template discovery, and a simp
 health check.
 
 ## Structure
-- `functions/contract_generation`: POST `/api/contract/generate` accepts a JSON
-  payload, validates it with Pydantic, and renders a Jinja2 template.
-- `functions/template_management`: GET `/api/templates` lists available templates
-  from `backend/templates`.
-- `functions/health_check`: GET `/api/health` returns a static healthy response.
+- `contract_generation`: POST `/api/contract/generate` accepts a JSON payload,
+  validates it with Pydantic, and renders a Jinja2 template.
+- `template_management`: GET `/api/templates` lists available templates from
+  `backend/templates`.
+- `health_check`: GET `/api/health` returns a static healthy response.
 - `shared/`: reusable Pydantic models and template rendering helpers.
 - `templates/`: sample Jinja2 contract template files (e.g., `basic_contract.html`).
 

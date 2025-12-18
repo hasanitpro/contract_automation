@@ -5,7 +5,7 @@ from http import HTTPStatus
 
 import azure.functions as func
 
-from ...shared import ErrorResponse, list_templates
+from ..shared import ErrorResponse, list_templates
 
 
 def _build_response(body: dict, status: HTTPStatus) -> func.HttpResponse:
