@@ -4,7 +4,7 @@ from http import HTTPStatus
 
 import azure.functions as func
 
-from ...shared import (
+from ..shared import (
     ContractResponse,
     ErrorResponse,
     parse_contract_request,
