@@ -1931,6 +1931,15 @@ function AnwaltsMaske() {
           "Bitte tragen Sie den Staffelmiete-Zeitplan ein.";
     }
 
+    if (step === 3) {
+      if (!formData.untervermietungKlausel)
+        stepErrors.untervermietungKlausel =
+          "Bitte wählen Sie eine Regelung zur Untervermietung.";
+      if (!formData.tierhaltungTon)
+        stepErrors.tierhaltungTon =
+          "Bitte wählen Sie den Klauselton zur Tierhaltung.";
+    }
+
     if (step === 4) {
       if (!formData.srModell)
         stepErrors.srModell = "Bitte wählen Sie ein SR-Modell.";
@@ -2766,7 +2775,7 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className="select"
+                className={`select ${errors.untervermietungKlausel ? "error" : ""}`}
                 value={formData.untervermietungKlausel}
                 onChange={(e) =>
                   updateFormData(
@@ -2786,6 +2795,9 @@ function AnwaltsMaske() {
                   Individuelle Regelung
                 </option>
               </select>
+              {errors.untervermietungKlausel && (
+                <div className="error-text">{errors.untervermietungKlausel}</div>
+              )}
             </div>
 
             <div className="form-group">
@@ -2794,7 +2806,7 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className="select"
+                className={`select ${errors.tierhaltungTon ? "error" : ""}`}
                 value={formData.tierhaltungTon}
                 onChange={(e) =>
                   updateFormData(
@@ -2815,6 +2827,9 @@ function AnwaltsMaske() {
                   Individuell
                 </option>
               </select>
+              {errors.tierhaltungTon && (
+                <div className="error-text">{errors.tierhaltungTon}</div>
+              )}
             </div>
           </div>
         );
