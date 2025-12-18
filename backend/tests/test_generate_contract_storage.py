@@ -163,7 +163,19 @@ def test_render_docx_template_reports_unused_placeholders(sample_docx_bytes):
     with pytest.raises(gc.TemplateProcessingError) as excinfo:
         gc._render_docx_template(sample_docx_bytes, {"NAME": "Alice", "EXTRA": "value"})
 
-    assert "Unreplaced placeholders" in str(excinfo.value)
+    assert "Unexpected placeholders not in template" in str(excinfo.value)
+
+
+def test_render_docx_template_reports_missing_placeholders():
+    doc = Document()
+    doc.add_paragraph("Hello [NAME] [DATE]")
+    buffer = io.BytesIO()
+    doc.save(buffer)
+
+    with pytest.raises(gc.TemplateProcessingError) as excinfo:
+        gc._render_docx_template(buffer.getvalue(), {"NAME": "Alice"})
+
+    assert "Missing placeholders in context: DATE" in str(excinfo.value)
 
 
 def test_upload_contract_to_azurite(azurite, sample_docx_bytes):

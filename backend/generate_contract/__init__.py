@@ -17,6 +17,9 @@ from pydantic import BaseModel, ValidationError
 from domain.contract_context import build_contract_context, ContractContextError
 
 
+PLACEHOLDER_PATTERN = re.compile(r"\[([A-Z0-9_]+)\]")
+
+
 # ============================================================
 # Errors
 # ============================================================
@@ -175,9 +178,42 @@ def _apply_placeholders_to_runs(
                 used.add(key)
 
 
+def _extract_placeholders(text: str) -> set[str]:
+    return set(PLACEHOLDER_PATTERN.findall(text or ""))
+
+
+def _collect_template_placeholders(document: Document) -> set[str]:
+    found: set[str] = set()
+
+    for paragraph in document.paragraphs:
+        found.update(_extract_placeholders(paragraph.text))
+
+    for table in document.tables:
+        for row in table.rows:
+            for cell in row.cells:
+                found.update(_extract_placeholders(cell.text))
+
+    return found
+
+
 def _render_docx_template(template_bytes: bytes, context: Dict[str, str]) -> bytes:
     document = Document(io.BytesIO(template_bytes))
     used: set[str] = set()
+
+    template_placeholders = _collect_template_placeholders(document)
+    context_keys = set(context.keys())
+
+    missing = template_placeholders - context_keys
+    if missing:
+        raise TemplateProcessingError(
+            "Missing placeholders in context: " + ", ".join(sorted(missing))
+        )
+
+    unexpected = context_keys - template_placeholders
+    if unexpected:
+        raise TemplateProcessingError(
+            "Unexpected placeholders not in template: " + ", ".join(sorted(unexpected))
+        )
 
     for p in document.paragraphs:
         _apply_placeholders_to_runs(p.runs, context, used)
@@ -318,3 +354,4 @@ async def main(req: func.HttpRequest) -> func.HttpResponse:
         status_code=200,
         mimetype="application/json",
     )
+
