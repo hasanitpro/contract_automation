@@ -28,10 +28,10 @@ function MandantenMaske() {
     eigene_iban: "",
     wird_vertreten: "",
     vertreten_durch: "",
-    vollmacht_vorhanden: "",
+    vollmacht: "",
     ust_id: "",
     steuernummer: "",
-    gegenpartei_bekannt: "",
+    gegenpartei: "",
     gegenpartei_name: "",
     gegenpartei_anschrift: "",
     gegenpartei_email: "",
@@ -70,7 +70,6 @@ function MandantenMaske() {
     zahlungsart: "",
     zahler_iban: "",
     bk_modell: "",
-    abrz: "",
     bk_weg: "",
     nutzung: "",
     unterverm: "",
@@ -165,9 +164,9 @@ function MandantenMaske() {
         newErrors.eigene_iban = "IBAN ist erforderlich.";
       if (formData.wird_vertreten === "ja" && !formData.vertreten_durch)
         newErrors.vertreten_durch = "Bitte benennen Sie den Vertreter.";
-      if (formData.wird_vertreten === "ja" && !formData.vollmacht_vorhanden)
-        newErrors.vollmacht_vorhanden = "Bitte wählen Sie eine Option zur Vollmacht.";
-      if (formData.gegenpartei_bekannt === "ja") {
+      if (formData.wird_vertreten === "ja" && !formData.vollmacht)
+        newErrors.vollmacht = "Bitte wählen Sie eine Option zur Vollmacht.";
+      if (formData.gegenpartei === "ja") {
         if (!formData.gegenpartei_name)
           newErrors.gegenpartei_name = "Name der Gegenpartei ist erforderlich.";
         if (!formData.gegenpartei_anschrift)
@@ -228,8 +227,6 @@ function MandantenMaske() {
         newErrors.zahlungsart = "Bitte wählen Sie die Zahlungsart.";
       if (!formData.bk_modell)
         newErrors.bk_modell = "Bitte wählen Sie das Betriebskostenmodell.";
-      if (!formData.abrz)
-        newErrors.abrz = "Bitte wählen Sie den Abrechnungszeitraum.";
       if (!formData.bk_weg)
         newErrors.bk_weg = "Bitte wählen Sie eine Option zur BK-Umlage.";
       if (!formData.vz_heizung)
@@ -511,17 +508,17 @@ function MandantenMaske() {
                         <input
                           type="radio"
                           value={value}
-                          checked={formData.vollmacht_vorhanden === value}
+                          checked={formData.vollmacht === value}
                           onChange={(e) =>
-                            updateFormData("vollmacht_vorhanden", e.target.value)
+                            updateFormData("vollmacht", e.target.value)
                           }
                         />
                         <span>{label}</span>
                       </label>
                     ))}
                   </div>
-                  {errors.vollmacht_vorhanden && (
-                    <div className="error-text">{errors.vollmacht_vorhanden}</div>
+                  {errors.vollmacht && (
+                    <div className="error-text">{errors.vollmacht}</div>
                   )}
                 </div>
               </div>
@@ -562,9 +559,9 @@ function MandantenMaske() {
                     <input
                       type="radio"
                       value={value}
-                      checked={formData.gegenpartei_bekannt === value}
+                      checked={formData.gegenpartei === value}
                       onChange={(e) =>
-                        updateFormData("gegenpartei_bekannt", e.target.value)
+                        updateFormData("gegenpartei", e.target.value)
                       }
                     />
                     <span>{label}</span>
@@ -573,7 +570,7 @@ function MandantenMaske() {
               </div>
             </div>
 
-            {formData.gegenpartei_bekannt === "ja" && (
+            {formData.gegenpartei === "ja" && (
               <div className="info-box-v2">
                 <strong>Angaben zur Gegenpartei</strong>
                 <div className="field-v2" style={{ marginTop: "10px" }}>
@@ -1270,35 +1267,6 @@ function MandantenMaske() {
               </div>
               {errors.bk_modell && (
                 <div className="error-text">{errors.bk_modell}</div>
-              )}
-            </div>
-
-            <div className="field-v2">
-              <label>
-                Abrechnungszeitraum <span className="required">*</span>
-              </label>
-              <div className="radio-group-v2">
-                {[
-                  ["kalenderjahr", "01.01. – 31.12. (Kalenderjahr)"],
-                  ["abweichend", "Abweichender Zeitraum"],
-                ].map(([value, label]) => (
-                  <label key={value} className="radio-option-v2">
-                    <input
-                      type="radio"
-                      value={value}
-                      checked={formData.abrz === value}
-                      onChange={(e) =>
-                        updateFormData("abrz", e.target.value)
-                      }
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </div>
-              {errors.abrz && (
-                <div className="error-text">
-                  {errors.abrz}
-                </div>
               )}
             </div>
 
@@ -4191,4 +4159,3 @@ export default function App() {
     </>
   );
 }
-
