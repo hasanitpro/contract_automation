@@ -9,79 +9,9 @@ const Check = () => <span>✓</span>;
 const FileText = () => <span>📄</span>;
 const UploadIcon = () => <span>📤</span>;
 
-const normalizeMaskAKeys = (data = {}) => {
-  const legacyToSnakeMap = {
-    ustId: "ust_id",
-    gegenparteiBekannt: "gegenpartei_bekannt",
-    gegenparteiName: "gegenpartei_name",
-    gegenparteiAnschrift: "gegenpartei_anschrift",
-    gegenparteiEmail: "gegenpartei_email",
-    gegenparteiTelefon: "gegenpartei_telefon",
-    stellplatzNummer: "stellplatz_nr",
-    mitvermieteteAusstattung: "ausstattung",
-    miteigentumsanteile: "mea",
-    grundrissDatei: "grundriss_datei",
-    wegDokument: "weg_dokument",
-    zuschlagMoebliert: "zuschlag_moeblierung",
-    zuschlagGewerbe: "zuschlag_teilgewerbe",
-    zuschlagUntervermietung: "zuschlag_unterverm",
-    zahlerIban: "zahler_iban",
-    abrechnungszeitraum: "abrz",
-    bkweg: "bk_weg",
-    haustiere: "tiere",
-    kautionZahlweise: "kaution_zahlweise",
-    vollmacht: "vollmacht_vorhanden",
-  };
+const normalizeMaskAKeys = (data = {}) => ({ ...data });
 
-  const normalized = { ...data };
-
-  Object.entries(legacyToSnakeMap).forEach(([legacyKey, snakeKey]) => {
-    if (normalized[legacyKey] !== undefined && normalized[snakeKey] === undefined) {
-      normalized[snakeKey] = normalized[legacyKey];
-    }
-  });
-
-  return normalized;
-};
-
-const normalizeMaskBKeys = (data = {}) => {
-  const legacyToSnakeMap = {
-    vertragsartFinal: "vertragsart_final",
-    kuendigungsverzichtJahre: "kuendigungsverzicht",
-    indexmiete557b: "indexmiete_557b",
-    staffelmieteSchedule: "staffelmiete_schedule",
-    mpbStatus: "mpb_status",
-    mpbVormietverhaeltnis: "mpb_vormiet",
-    mpbGrenze: "mpb_grenze",
-    mpbGrundVormiete: "mpb_grund_vormiete",
-    mpbVormieteBetrag: "mpb_vormiete_betrag",
-    mpbGrundModernisierung: "mpb_grund_modernisierung",
-    mpbModernisierungDetails: "mpb_modernisierung_details",
-    mpbGrundErstmiete: "mpb_grund_erstmiete",
-    mpbErstmieteDetails: "mpb_erstmiete_details",
-    bkZusatzPositionen: "bk_zusatz_positionen",
-    wegVerweisSchluessel: "weg_verweis_schluessel",
-    heizwwParagraph: "heizww_paragraph",
-    untervermietungKlausel: "untervermietung_klausel",
-    tierhaltungTon: "tierhaltung_ton",
-    srModell: "sr_modell",
-    kleinrepJeVorgang: "kleinrep_je_vorgang",
-    energieausweisEinbindung: "energieausweis_einbindung",
-    dsgvoBeiblatt: "dsgvo_beiblatt",
-    mieterEmail: "mieter_email",
-    mieterTelefon: "mieter_telefon",
-  };
-
-  const normalized = { ...data };
-
-  Object.entries(legacyToSnakeMap).forEach(([legacyKey, snakeKey]) => {
-    if (normalized[legacyKey] !== undefined && normalized[snakeKey] === undefined) {
-      normalized[snakeKey] = normalized[legacyKey];
-    }
-  });
-
-  return normalized;
-};
+const normalizeMaskBKeys = (data = {}) => ({ ...data });
 
 
 /**********************
@@ -4261,5 +4191,4 @@ export default function App() {
     </>
   );
 }
-
 
