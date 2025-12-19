@@ -2312,6 +2312,9 @@ function AnwaltsMaske() {
     }
   };
 
+  const srCaseClass = (isSelected) =>
+    `sr-case ${isSelected ? "sr-case--green" : "sr-case--amber"}`;
+
   useEffect(() => {
     if (
       formData.sr_renoviert ||
@@ -3415,7 +3418,7 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <div className="sr-case-list">
-                <div className="sr-case sr-case--green">
+                <div className={srCaseClass(formData.sr_renoviert)}>
                   <div className="sr-case-title">
                     ✓ Fall 1: Renovierte/Neue Wohnung
                   </div>
@@ -3434,7 +3437,7 @@ function AnwaltsMaske() {
                   </label>
                 </div>
 
-                <div className="sr-case sr-case--amber">
+                <div className={srCaseClass(formData.sr_unrenoviert_ohne)}>
                   <div className="sr-case-title">
                     Fall 2a: Unrenoviert - Keine SR-Pflicht
                   </div>
@@ -3456,7 +3459,7 @@ function AnwaltsMaske() {
                   </label>
                 </div>
 
-                <div className="sr-case sr-case--orange">
+                <div className={srCaseClass(formData.sr_unrenoviert_mit)}>
                   <div className="sr-case-title">
                     Fall 2b: Unrenoviert - Renovierung gegen Ausgleich
                   </div>
