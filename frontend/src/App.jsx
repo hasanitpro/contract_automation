@@ -1679,11 +1679,11 @@ function AnwaltsMaske() {
     ro_vz_heizung: "",
     vertragsart_final: "",
     kuendigungsverzicht: "0",
-    indexmiete_557b: "",
+    indexmiete: "",
     staffelmiete: "",
     staffelmiete_schedule: "",
     faelligkeit: "",
-    mietanpassung: "",
+    mietanpassung_normalfall: "",
     mpb_status: "",
     mpb_vormiet: "",
     mpb_grenze: "",
@@ -1693,11 +1693,14 @@ function AnwaltsMaske() {
     mpb_modernisierung_details: "",
     mpb_grund_erstmiete: false,
     mpb_erstmiete_details: "",
-    bk_zusatz_positionen: [],
-    weg_verweis_schluessel: "",
+    zusatz_bk: [],
+    weg_text: "",
     heizww_paragraph: "",
-    untervermietung_klausel: "",
-    tierhaltung_ton: "",
+    unterverm_klausel: "",
+    tiere_ton: "",
+    bauveraenderung: false,
+    besichtigung: false,
+    heiz_separat: false,
     sr_modell: "",
     sr_zuschuss: "",
     sr_zuschuss_betrag: "",
@@ -1811,7 +1814,7 @@ function AnwaltsMaske() {
   };
 
   const buildZusatzBkText = (maskBData = {}) => {
-    const items = (maskBData.bk_zusatz_positionen || []).filter(Boolean);
+    const items = (maskBData.zusatz_bk || []).filter(Boolean);
     if (!items.length)
       return "Es werden keine zusätzlichen Positionen vereinbart.";
     return items.map((item, idx) => `${idx + 1}. ${item}`).join("\n");
@@ -1876,7 +1879,7 @@ function AnwaltsMaske() {
       BETRAG_JE: maskB.kleinrep_je_vorgang || "",
       COMPLETE_ANNEX_LIST: annexInfo.formattedList,
       CUSTOM_PET_TEXT: maskA.tiere_details || "",
-      CUSTOM_SUBLETTING_TEXT: maskB.untervermietung_klausel || "",
+      CUSTOM_SUBLETTING_TEXT: maskB.unterverm_klausel || "",
       DATE: maskA.bezugsfertig || "",
       DATUM: maskB.bearbeitungsdatum || new Date().toLocaleDateString("de-DE"),
       DETAILS: maskA.tiere_details || "",
@@ -1910,7 +1913,7 @@ function AnwaltsMaske() {
       TENANT_NAME: parties.tenant.name,
       TENANT_REPRESENTATIVE: parties.tenant.representative,
       VAT_ID: parties.landlord.vat,
-      WEG_TEXT: maskB.weg_verweis_schluessel || "",
+      WEG_TEXT: maskB.weg_text || "",
       WOHNUNG_BESCHREIBUNG: combineHousingDescription(maskA),
       X: annexInfo.x,
       Y: annexInfo.y,
@@ -1970,25 +1973,25 @@ function AnwaltsMaske() {
 
   const enforceExclusivity = (data) => {
     const next = { ...data };
-    if (next.mietanpassung === "index") {
-      next.indexmiete_557b = "Ja";
+    if (next.mietanpassung_normalfall === "index") {
+      next.indexmiete = "Ja";
       next.staffelmiete = "Nein";
       next.staffelmiete_schedule = "";
-    } else if (next.mietanpassung === "staffel") {
-      next.indexmiete_557b = "Nein";
+    } else if (next.mietanpassung_normalfall === "staffel") {
+      next.indexmiete = "Nein";
       next.staffelmiete = "Ja";
-    } else if (next.mietanpassung === "normalfall") {
-      next.indexmiete_557b = "Nein";
+    } else if (next.mietanpassung_normalfall === "normalfall") {
+      next.indexmiete = "Nein";
       next.staffelmiete = "Nein";
       next.staffelmiete_schedule = "";
-    } else if (!next.mietanpassung) {
-      if (next.indexmiete_557b === "Ja") next.mietanpassung = "index";
-      else if (next.staffelmiete === "Ja") next.mietanpassung = "staffel";
+    } else if (!next.mietanpassung_normalfall) {
+      if (next.indexmiete === "Ja") next.mietanpassung_normalfall = "index";
+      else if (next.staffelmiete === "Ja") next.mietanpassung_normalfall = "staffel";
       else if (
-        next.indexmiete_557b === "Nein" &&
+        next.indexmiete === "Nein" &&
         next.staffelmiete === "Nein"
       )
-        next.mietanpassung = "normalfall";
+        next.mietanpassung_normalfall = "normalfall";
     }
     return next;
   };
@@ -2135,10 +2138,10 @@ function AnwaltsMaske() {
     }
 
     if (step === 2) {
-      if (!formData.mietanpassung)
-        stepErrors.mietanpassung = "Bitte wählen Sie die Mietanpassung.";
+      if (!formData.mietanpassung_normalfall)
+        stepErrors.mietanpassung_normalfall = "Bitte wählen Sie die Mietanpassung.";
       if (
-        formData.mietanpassung === "staffel" &&
+        formData.mietanpassung_normalfall === "staffel" &&
         !formData.staffelmiete_schedule
       )
         stepErrors.staffelmiete_schedule =
@@ -2146,11 +2149,11 @@ function AnwaltsMaske() {
     }
 
     if (step === 3) {
-      if (!formData.untervermietung_klausel)
-        stepErrors.untervermietung_klausel =
+      if (!formData.unterverm_klausel)
+        stepErrors.unterverm_klausel =
           "Bitte wählen Sie eine Regelung zur Untervermietung.";
-      if (!formData.tierhaltung_ton)
-        stepErrors.tierhaltung_ton =
+      if (!formData.tiere_ton)
+        stepErrors.tiere_ton =
           "Bitte wählen Sie den Klauselton zur Tierhaltung.";
     }
 
@@ -2608,11 +2611,11 @@ function AnwaltsMaske() {
                 <label className="radio-option-v2">
                   <input
                     type="radio"
-                    name="mietanpassung"
+                    name="mietanpassung_normalfall"
                     value="normalfall"
-                    checked={formData.mietanpassung === "normalfall"}
+                    checked={formData.mietanpassung_normalfall === "normalfall"}
                     onChange={(e) =>
-                      updateFormData("mietanpassung", e.target.value)
+                      updateFormData("mietanpassung_normalfall", e.target.value)
                     }
                   />
                   <span>Normalfall (Gesetzliche Regelungen § 558 BGB)</span>
@@ -2620,11 +2623,11 @@ function AnwaltsMaske() {
                 <label className="radio-option-v2">
                   <input
                     type="radio"
-                    name="mietanpassung"
+                    name="mietanpassung_normalfall"
                     value="index"
-                    checked={formData.mietanpassung === "index"}
+                    checked={formData.mietanpassung_normalfall === "index"}
                     onChange={(e) =>
-                      updateFormData("mietanpassung", e.target.value)
+                      updateFormData("mietanpassung_normalfall", e.target.value)
                     }
                   />
                   <span>Indexmiete (§ 557b BGB)</span>
@@ -2632,11 +2635,11 @@ function AnwaltsMaske() {
                 <label className="radio-option-v2">
                   <input
                     type="radio"
-                    name="mietanpassung"
+                    name="mietanpassung_normalfall"
                     value="staffel"
-                    checked={formData.mietanpassung === "staffel"}
+                    checked={formData.mietanpassung_normalfall === "staffel"}
                     onChange={(e) =>
-                      updateFormData("mietanpassung", e.target.value)
+                      updateFormData("mietanpassung_normalfall", e.target.value)
                     }
                   />
                   <span>Staffelmiete</span>
@@ -2645,12 +2648,12 @@ function AnwaltsMaske() {
               <p className="help-text">
                 Indexmiete und Staffelmiete schließen sich gegenseitig aus
               </p>
-              {errors.mietanpassung && (
-                <div className="error-text">{errors.mietanpassung}</div>
+              {errors.mietanpassung_normalfall && (
+                <div className="error-text">{errors.mietanpassung_normalfall}</div>
               )}
             </div>
 
-            {formData.mietanpassung === "staffel" && (
+            {formData.mietanpassung_normalfall === "staffel" && (
               <div className="field-v2">
                 <label>
                   Staffelmiete - Zeitplan <span className="required">*</span>
@@ -2959,9 +2962,9 @@ function AnwaltsMaske() {
                     <label key={option} className="checkbox-option-v2">
                       <input
                         type="checkbox"
-                        checked={formData.bk_zusatz_positionen.includes(option)}
+                        checked={formData.zusatz_bk.includes(option)}
                         onChange={() =>
-                          toggleArrayValue("bk_zusatz_positionen", option)
+                          toggleArrayValue("zusatz_bk", option)
                         }
                       />
                       <span>{option}</span>
@@ -2977,9 +2980,9 @@ function AnwaltsMaske() {
                 className="textarea"
                 placeholder="z.B. Teilungserklärung § ...; MEA lt. Mandantendaten"
                 rows="2"
-                value={formData.weg_verweis_schluessel}
+                value={formData.weg_text}
                 onChange={(e) =>
-                  updateFormData("weg_verweis_schluessel", e.target.value)
+                  updateFormData("weg_text", e.target.value)
                 }
               />
             </div>
@@ -3032,11 +3035,11 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className={`select ${errors.untervermietung_klausel ? "error" : ""}`}
-                value={formData.untervermietung_klausel}
+                className={`select ${errors.unterverm_klausel ? "error" : ""}`}
+                value={formData.unterverm_klausel}
                 onChange={(e) =>
                   updateFormData(
-                    "untervermietung_klausel",
+                    "unterverm_klausel",
                     e.target.value
                   )
                 }
@@ -3052,8 +3055,8 @@ function AnwaltsMaske() {
                   Individuelle Regelung
                 </option>
               </select>
-              {errors.untervermietung_klausel && (
-                <div className="error-text">{errors.untervermietung_klausel}</div>
+              {errors.unterverm_klausel && (
+                <div className="error-text">{errors.unterverm_klausel}</div>
               )}
             </div>
 
@@ -3063,11 +3066,11 @@ function AnwaltsMaske() {
                 <span className="required">*</span>
               </label>
               <select
-                className={`select ${errors.tierhaltung_ton ? "error" : ""}`}
-                value={formData.tierhaltung_ton}
+                className={`select ${errors.tiere_ton ? "error" : ""}`}
+                value={formData.tiere_ton}
                 onChange={(e) =>
                   updateFormData(
-                    "tierhaltung_ton",
+                    "tiere_ton",
                     e.target.value
                   )
                 }
@@ -3084,9 +3087,45 @@ function AnwaltsMaske() {
                   Individuell
                 </option>
               </select>
-              {errors.tierhaltung_ton && (
-                <div className="error-text">{errors.tierhaltung_ton}</div>
+              {errors.tiere_ton && (
+                <div className="error-text">{errors.tiere_ton}</div>
               )}
+            </div>
+
+            <div className="form-group">
+              <label className="label">Weitere Regelungen</label>
+              <div className="checkbox-group-v2">
+                <label className="checkbox-option-v2">
+                  <input
+                    type="checkbox"
+                    checked={!!formData.bauveraenderung}
+                    onChange={(e) =>
+                      updateFormData("bauveraenderung", e.target.checked)
+                    }
+                  />
+                  <span>Bauliche Veränderungen</span>
+                </label>
+                <label className="checkbox-option-v2">
+                  <input
+                    type="checkbox"
+                    checked={!!formData.besichtigung}
+                    onChange={(e) =>
+                      updateFormData("besichtigung", e.target.checked)
+                    }
+                  />
+                  <span>Besichtigung</span>
+                </label>
+                <label className="checkbox-option-v2">
+                  <input
+                    type="checkbox"
+                    checked={!!formData.heiz_separat}
+                    onChange={(e) =>
+                      updateFormData("heiz_separat", e.target.checked)
+                    }
+                  />
+                  <span>Heizung separat</span>
+                </label>
+              </div>
             </div>
           </div>
         );
@@ -3672,14 +3711,14 @@ function AnwaltsMaske() {
               <div className="summary-title">
                 Miethöhe & BK
               </div>
-              {formData.mietanpassung && (
+              {formData.mietanpassung_normalfall && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Mietanpassung:
                   </span>
                   <span className="summary-value">
-                    {mietanpassungLabels[formData.mietanpassung] ||
-                      formData.mietanpassung}
+                    {mietanpassungLabels[formData.mietanpassung_normalfall] ||
+                      formData.mietanpassung_normalfall}
                   </span>
                 </div>
               )}
@@ -3693,7 +3732,7 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
-              {formData.mietanpassung === "staffel" &&
+              {formData.mietanpassung_normalfall === "staffel" &&
                 formData.staffelmiete_schedule && (
                   <div className="summary-field">
                     <span className="summary-label">Staffelmietplan:</span>
@@ -3763,19 +3802,19 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
-              {formData.bk_zusatz_positionen?.length > 0 && (
+              {formData.zusatz_bk?.length > 0 && (
                 <div className="summary-field">
                   <span className="summary-label">Zusatz-BK-Positionen:</span>
                   <span className="summary-value">
-                    {formData.bk_zusatz_positionen.join(", ")}
+                    {formData.zusatz_bk.join(", ")}
                   </span>
                 </div>
               )}
-              {formData.weg_verweis_schluessel && (
+              {formData.weg_text && (
                 <div className="summary-field">
                   <span className="summary-label">WEG-Verweis:</span>
                   <span className="summary-value">
-                    {formData.weg_verweis_schluessel}
+                    {formData.weg_text}
                   </span>
                 </div>
               )}
@@ -3794,18 +3833,18 @@ function AnwaltsMaske() {
 
             <div className="summary-section">
               <div className="summary-title">Nutzung & Zutritt</div>
-              {formData.untervermietung_klausel && (
+              {formData.unterverm_klausel && (
                 <div className="summary-field">
                   <span className="summary-label">Untervermietung:</span>
                   <span className="summary-value">
-                    {formData.untervermietung_klausel}
+                    {formData.unterverm_klausel}
                   </span>
                 </div>
               )}
-              {formData.tierhaltung_ton && (
+              {formData.tiere_ton && (
                 <div className="summary-field">
                   <span className="summary-label">Tierhaltung:</span>
-                  <span className="summary-value">{formData.tierhaltung_ton}</span>
+                  <span className="summary-value">{formData.tiere_ton}</span>
                 </div>
               )}
             </div>
