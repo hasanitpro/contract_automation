@@ -1,79 +1,106 @@
 import json
 import logging
 import os
+import re
 from datetime import UTC, datetime
-from typing import Any, Dict, List, Optional
+from typing import Annotated, Any, Dict, List, Optional
 from uuid import uuid4
 
 import azure.functions as func
 from azure.core.exceptions import HttpResponseError
 from azure.data.tables import TableServiceClient
-from pydantic import BaseModel, ConfigDict, Field, ValidationError
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    StringConstraints,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
+
+EMAIL_FIELD = Annotated[str, StringConstraints(min_length=1)]
+REQUIRED_TEXT = Annotated[str, StringConstraints(min_length=1)]
+OPTIONAL_TEXT = Annotated[Optional[str], StringConstraints(strip_whitespace=True)]
+
+
+def _normalize_optional_text(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    if isinstance(value, str):
+        stripped = value.strip()
+        return stripped or None
+    return value
+
+
+def _has_valid_digits(value: str, minimum: int) -> bool:
+    return sum(ch.isdigit() for ch in value) >= minimum
 
 
 class MaskAClientPayload(BaseModel):
-    rolle: str = Field(..., min_length=1)
-    eigene_name: str = Field(..., min_length=1)
-    eigene_anschrift: str = Field(..., min_length=1)
-    eigene_email: str = Field(..., min_length=1)
-    eigene_telefon: str = Field(..., min_length=1)
-    eigene_iban: str = Field(..., min_length=1)
-    gegenpartei_bekannt: str = Field(..., min_length=1)
-    gegenpartei_name: str = Field(..., min_length=1)
-    gegenpartei_anschrift: str = Field(..., min_length=1)
-    gegenpartei_email: str = Field(..., min_length=1)
-    gegenpartei_telefon: str = Field(..., min_length=1)
-    objektadresse: str = Field(..., min_length=1)
-    wohnungsart: str = Field(..., min_length=1)
-    wohnflaeche: str = Field(..., min_length=1)
-    bezugsfertig: str = Field(..., min_length=1)
-    mietbeginn: str = Field(..., min_length=1)
-    vertragsart: str = Field(..., min_length=1)
-    grundmiete: str = Field(..., min_length=1)
-    kaution: str = Field(..., min_length=1)
+    rolle: REQUIRED_TEXT
+    eigene_name: REQUIRED_TEXT
+    eigene_anschrift: REQUIRED_TEXT
+    eigene_email: EmailStr
+    eigene_telefon: REQUIRED_TEXT
+    eigene_iban: REQUIRED_TEXT
+    gegenpartei_bekannt: REQUIRED_TEXT
+    gegenpartei_name: OPTIONAL_TEXT = None
+    gegenpartei_anschrift: OPTIONAL_TEXT = None
+    gegenpartei_email: Optional[EmailStr] = None
+    gegenpartei_telefon: OPTIONAL_TEXT = None
+    objektadresse: REQUIRED_TEXT
+    wohnungsart: REQUIRED_TEXT
+    wohnflaeche: REQUIRED_TEXT
+    bezugsfertig: REQUIRED_TEXT
+    mietbeginn: REQUIRED_TEXT
+    vertragsart: REQUIRED_TEXT
+    grundmiete: REQUIRED_TEXT
+    kaution: REQUIRED_TEXT
 
-    wird_vertreten: Optional[str] = None
-    vertreten_durch: Optional[str] = None
-    vollmacht_vorhanden: Optional[str] = None
-    ust_id: Optional[str] = None
-    steuernummer: Optional[str] = None
-    wohnung_bez: Optional[str] = None
+    wird_vertreten: OPTIONAL_TEXT = None
+    vertreten_durch: OPTIONAL_TEXT = None
+    vollmacht_vorhanden: OPTIONAL_TEXT = None
+    ust_id: OPTIONAL_TEXT = None
+    steuernummer: OPTIONAL_TEXT = None
+    wohnung_bez: OPTIONAL_TEXT = None
     aussenbereich: List[str] = Field(default_factory=list)
     nebenraeume: List[str] = Field(default_factory=list)
-    stellplatz: Optional[str] = None
-    stellplatz_nr: Optional[str] = None
+    stellplatz: OPTIONAL_TEXT = None
+    stellplatz_nr: OPTIONAL_TEXT = None
     ausstattung: Optional[Any] = None
-    weg: Optional[str] = None
-    mea: Optional[str] = None
-    grundriss_datei: Optional[str] = None
-    weg_dokument: Optional[str] = None
-    zustand: Optional[str] = None
+    weg: OPTIONAL_TEXT = None
+    mea: OPTIONAL_TEXT = None
+    grundriss_datei: OPTIONAL_TEXT = None
+    weg_dokument: OPTIONAL_TEXT = None
+    zustand: OPTIONAL_TEXT = None
     uebergabeprotokoll: Optional[Any] = None
-    laerm: Optional[str] = None
+    laerm: OPTIONAL_TEXT = None
     schluessel_arten: List[str] = Field(default_factory=list)
-    schluessel_anzahl: Optional[str] = None
-    mietende: Optional[str] = None
-    befristungsgrund: Optional[str] = None
-    befristungsgrund_text: Optional[str] = None
-    zuschlag_moeblierung: Optional[str] = None
-    zuschlag_teilgewerbe: Optional[str] = None
-    zuschlag_unterverm: Optional[str] = None
-    vz_heizung: Optional[str] = None
-    vz_bk: Optional[str] = None
-    stellplatzmiete: Optional[str] = None
-    zahlungsart: Optional[str] = None
-    zahler_iban: Optional[str] = None
-    bk_modell: Optional[str] = None
-    abrz: Optional[str] = None
-    bk_weg: Optional[str] = None
-    nutzung: Optional[str] = None
-    unterverm: Optional[str] = None
-    tiere: Optional[str] = None
-    tiere_details: Optional[str] = None
-    kaution_zahlweise: Optional[str] = None
-    kautionsform: Optional[str] = None
-    uebergabedatum: Optional[str] = None
-    timestamp: Optional[str] = None
+    schluessel_anzahl: OPTIONAL_TEXT = None
+    mietende: OPTIONAL_TEXT = None
+    befristungsgrund: OPTIONAL_TEXT = None
+    befristungsgrund_text: OPTIONAL_TEXT = None
+    zuschlag_moeblierung: OPTIONAL_TEXT = None
+    zuschlag_teilgewerbe: OPTIONAL_TEXT = None
+    zuschlag_unterverm: OPTIONAL_TEXT = None
+    vz_heizung: OPTIONAL_TEXT = None
+    vz_bk: OPTIONAL_TEXT = None
+    stellplatzmiete: OPTIONAL_TEXT = None
+    zahlungsart: OPTIONAL_TEXT = None
+    zahler_iban: OPTIONAL_TEXT = None
+    bk_modell: OPTIONAL_TEXT = None
+    abrz: OPTIONAL_TEXT = None
+    bk_weg: OPTIONAL_TEXT = None
+    nutzung: OPTIONAL_TEXT = None
+    unterverm: OPTIONAL_TEXT = None
+    tiere: OPTIONAL_TEXT = None
+    tiere_details: OPTIONAL_TEXT = None
+    kaution_zahlweise: OPTIONAL_TEXT = None
+    kautionsform: OPTIONAL_TEXT = None
+    uebergabedatum: OPTIONAL_TEXT = None
+    timestamp: OPTIONAL_TEXT = None
 
     # Legacy aliases accepted for backward compatibility.
     ustId: Optional[str] = None
@@ -98,6 +125,143 @@ class MaskAClientPayload(BaseModel):
     vollmacht: Optional[str] = None
 
     model_config = ConfigDict(extra="forbid")
+
+    @field_validator(
+        "gegenpartei_name",
+        "gegenpartei_anschrift",
+        "gegenpartei_telefon",
+        "stellplatz",
+        "stellplatz_nr",
+        "weg",
+        "mea",
+        "grundriss_datei",
+        "weg_dokument",
+        "zustand",
+        "laerm",
+        "schluessel_anzahl",
+        "mietende",
+        "befristungsgrund",
+        "befristungsgrund_text",
+        "zuschlag_moeblierung",
+        "zuschlag_teilgewerbe",
+        "zuschlag_unterverm",
+        "vz_heizung",
+        "vz_bk",
+        "stellplatzmiete",
+        "zahlungsart",
+        "zahler_iban",
+        "bk_modell",
+        "abrz",
+        "bk_weg",
+        "nutzung",
+        "unterverm",
+        "tiere",
+        "tiere_details",
+        "kaution_zahlweise",
+        "kautionsform",
+        "uebergabedatum",
+        "timestamp",
+        "wird_vertreten",
+        "vertreten_durch",
+        "vollmacht_vorhanden",
+        "ust_id",
+        "steuernummer",
+        "wohnung_bez",
+        "grundrissDatei",
+        "wegDokument",
+        "zuschlagMoebliert",
+        "zuschlagGewerbe",
+        "zuschlagUntervermietung",
+        "zahlerIban",
+        "abrechnungszeitraum",
+        "bkweg",
+        "haustiere",
+        "kautionZahlweise",
+        "vollmacht",
+        mode="before",
+    )
+    @classmethod
+    def _strip_optional_strings(cls, value: Optional[str]) -> Optional[str]:
+        return _normalize_optional_text(value)
+
+    @field_validator("gegenpartei_email", mode="before")
+    @classmethod
+    def _normalize_optional_email(cls, value: Optional[str]) -> Optional[str]:
+        return _normalize_optional_text(value)
+
+    @field_validator("eigene_telefon", "gegenpartei_telefon", mode="after")
+    @classmethod
+    def _validate_phone(cls, value: Optional[str]) -> Optional[str]:
+        if not value:
+            return value
+        if not _has_valid_digits(value, 6):
+            raise ValueError("Ungültige Telefonnummer.")
+        if not re.fullmatch(r"\+?[0-9\s().-]{6,}", value):
+            raise ValueError("Ungültige Telefonnummer.")
+        return value
+
+    @field_validator("eigene_iban", "zahler_iban", mode="after")
+    @classmethod
+    def _validate_iban(cls, value: Optional[str]) -> Optional[str]:
+        if not value:
+            return value
+        compact = value.replace(" ", "").upper()
+        if not re.fullmatch(r"[A-Z]{2}\d{2}[A-Z0-9]{11,30}", compact):
+            raise ValueError("Ungültige IBAN.")
+        return value
+
+    @field_validator(
+        "wohnflaeche",
+        "grundmiete",
+        "zuschlag_moeblierung",
+        "zuschlag_teilgewerbe",
+        "zuschlag_unterverm",
+        "vz_heizung",
+        "vz_bk",
+        "stellplatzmiete",
+        "schluessel_anzahl",
+        "mea",
+        mode="after",
+    )
+    @classmethod
+    def _validate_positive_numbers(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return value
+        try:
+            numeric = float(value)
+        except (TypeError, ValueError):
+            raise ValueError("Muss eine Zahl größer als 0 sein.")
+        if numeric <= 0:
+            raise ValueError("Muss eine Zahl größer als 0 sein.")
+        return value
+
+    @model_validator(mode="after")
+    def _validate_conditionals(self) -> "MaskAClientPayload":
+        if self.gegenpartei_bekannt.lower() == "ja":
+            missing = [
+                field
+                for field, value in {
+                    "gegenpartei_name": self.gegenpartei_name,
+                    "gegenpartei_anschrift": self.gegenpartei_anschrift,
+                    "gegenpartei_email": self.gegenpartei_email,
+                }.items()
+                if not value
+            ]
+            if missing:
+                raise ValueError(
+                    f"Fehlende Gegenpartei-Angaben: {', '.join(missing)}."
+                )
+
+        if self.vertragsart == "Befristet" and self.mietende:
+            try:
+                mietbeginn_date = datetime.fromisoformat(self.mietbeginn)
+                mietende_date = datetime.fromisoformat(self.mietende)
+            except ValueError:
+                return self
+            if mietende_date <= mietbeginn_date:
+                raise ValueError("Das Mietende muss nach dem Mietbeginn liegen.")
+
+        return self
 
 
 def _merge_legacy_fields(payload: Dict[str, Any]) -> Dict[str, Any]:
