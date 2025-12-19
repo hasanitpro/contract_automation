@@ -104,6 +104,7 @@ def _merge_legacy_fields(payload: Dict[str, Any]) -> Dict[str, Any]:
     legacy_to_canonical = {
         "ustId": "ust_id",
         "gegenparteiBekannt": "gegenpartei_bekannt",
+        "gegenpartei": "gegenpartei_bekannt",
         "gegenparteiName": "gegenpartei_name",
         "gegenparteiAnschrift": "gegenpartei_anschrift",
         "gegenparteiEmail": "gegenpartei_email",
@@ -128,6 +129,9 @@ def _merge_legacy_fields(payload: Dict[str, Any]) -> Dict[str, Any]:
     for legacy_key, canonical_key in legacy_to_canonical.items():
         if canonical_key not in merged and legacy_key in merged:
             merged[canonical_key] = merged[legacy_key]
+
+    if "gegenpartei" in merged:
+        merged.pop("gegenpartei", None)
 
     return merged
 
