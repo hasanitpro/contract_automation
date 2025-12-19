@@ -677,6 +677,91 @@ body {
   padding: 14px
 }
 
+.sr-info {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-left-width: 4px;
+  border-radius: 10px;
+  padding: 14px;
+  margin-bottom: 16px
+}
+
+.sr-info-title {
+  font-weight: 700;
+  color: #92400e;
+  margin-bottom: 6px
+}
+
+.sr-info-text {
+  color: #92400e;
+  font-size: 14px
+}
+
+.sr-case-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px
+}
+
+.sr-case {
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid transparent
+}
+
+.sr-case--green {
+  background: #ecfdf3;
+  border-color: #22c55e
+}
+
+.sr-case--amber {
+  background: #fef3c7;
+  border-color: #f59e0b
+}
+
+.sr-case--orange {
+  background: #fef9c3;
+  border-color: #f59e0b
+}
+
+.sr-case-title {
+  font-weight: 700;
+  margin-bottom: 6px
+}
+
+.sr-case-text {
+  font-size: 14px;
+  margin-bottom: 8px
+}
+
+.sr-case--green .sr-case-title,
+.sr-case--green .sr-case-text {
+  color: #166534
+}
+
+.sr-case--amber .sr-case-title,
+.sr-case--amber .sr-case-text,
+.sr-case--orange .sr-case-title,
+.sr-case--orange .sr-case-text {
+  color: #92400e
+}
+
+.sr-case-option,
+.sr-case-suboption {
+  gap: 8px
+}
+
+.sr-case-nested {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px
+}
+
+.sr-case-field {
+  margin-left: 24px
+}
+
 .file-upload-v2 {
   border: 2px dashed #cbd5e1;
   border-radius: 12px;
