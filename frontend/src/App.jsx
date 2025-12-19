@@ -1701,11 +1701,9 @@ function AnwaltsMaske() {
     bauveraenderung: false,
     besichtigung: false,
     heiz_separat: false,
-    sr_modell: "",
-    sr_zuschuss: "",
-    sr_zuschuss_betrag: "",
-    sr_mietfrei: "",
-    sr_mietfrei_monate: "",
+    sr_renoviert: false,
+    sr_unrenoviert_ohne: false,
+    sr_unrenoviert_mit: false,
     kleinrep_je_vorgang: "",
     kleinrep_jahr: "",
     endrueckgabe: "",
@@ -2129,6 +2127,25 @@ function AnwaltsMaske() {
     }
   };
 
+  const setSrSelection = (selected) => {
+    setFormData((prev) =>
+      enforceExclusivity({
+        ...prev,
+        sr_renoviert: false,
+        sr_unrenoviert_ohne: false,
+        sr_unrenoviert_mit: false,
+        [selected]: true,
+      })
+    );
+    if (errors.sr_renoviert) {
+      setErrors((prev) => {
+        const clone = { ...prev };
+        delete clone.sr_renoviert;
+        return clone;
+      });
+    }
+  };
+
   const buildStepErrors = (step) => {
     const stepErrors = {};
 
@@ -2158,8 +2175,14 @@ function AnwaltsMaske() {
     }
 
     if (step === 4) {
-      if (!formData.sr_modell)
-        stepErrors.sr_modell = "Bitte wählen Sie ein SR-Modell.";
+      if (
+        !formData.sr_renoviert &&
+        !formData.sr_unrenoviert_ohne &&
+        !formData.sr_unrenoviert_mit
+      ) {
+        stepErrors.sr_renoviert =
+          "Bitte wählen Sie ein Schönheitsreparaturen-Modell.";
+      }
       if (!formData.kleinrep_je_vorgang)
         stepErrors.kleinrep_je_vorgang =
           "Bitte wählen Sie die Kleinreparatur-Grenze je Vorgang.";
@@ -2169,16 +2192,6 @@ function AnwaltsMaske() {
       if (!formData.endrueckgabe)
         stepErrors.endrueckgabe =
           "Bitte wählen Sie die Regelung zur Endrückgabe.";
-      if (!formData.sr_zuschuss)
-        stepErrors.sr_zuschuss = "Bitte wählen Sie die SR-Zuschussregel.";
-      if (formData.sr_zuschuss === "ja" && !formData.sr_zuschuss_betrag)
-        stepErrors.sr_zuschuss_betrag =
-          "Bitte geben Sie den Zuschussbetrag an.";
-      if (!formData.sr_mietfrei)
-        stepErrors.sr_mietfrei = "Bitte wählen Sie die Mietfrei-Option.";
-      if (formData.sr_mietfrei === "ja" && !formData.sr_mietfrei_monate)
-        stepErrors.sr_mietfrei_monate =
-          "Bitte geben Sie die Anzahl der Monate an.";
     }
 
     if (step === 5) {
@@ -3153,134 +3166,30 @@ function AnwaltsMaske() {
                 <label className="radio-label">
                   <input
                     type="radio"
-                    value="Pauschal (ohne Fristen)"
-                    checked={
-                      formData.sr_modell ===
-                      "Pauschal (ohne Fristen)"
-                    }
-                    onChange={(e) =>
-                      updateFormData(
-                        "sr_modell",
-                        e.target.value
-                      )
-                    }
+                    checked={formData.sr_renoviert}
+                    onChange={() => setSrSelection("sr_renoviert")}
                   />
-                  Pauschal (ohne Fristen) - sicherer
+                  Renoviert übergeben
                 </label>
                 <label className="radio-label">
                   <input
                     type="radio"
-                    value="Fristenplan 5/7/10"
-                    checked={
-                      formData.sr_modell ===
-                      "Fristenplan 5/7/10"
-                    }
-                    onChange={(e) =>
-                      updateFormData(
-                        "sr_modell",
-                        e.target.value
-                      )
-                    }
+                    checked={formData.sr_unrenoviert_ohne}
+                    onChange={() => setSrSelection("sr_unrenoviert_ohne")}
                   />
-                  Fristenplan 5/7/10 Jahre (Risiko!)
+                  Unrenoviert ohne Ausgleich
+                </label>
+                <label className="radio-label">
+                  <input
+                    type="radio"
+                    checked={formData.sr_unrenoviert_mit}
+                    onChange={() => setSrSelection("sr_unrenoviert_mit")}
+                  />
+                  Unrenoviert mit Ausgleich
                 </label>
               </div>
-              {errors.sr_modell && (
-                <div className="error-text">{errors.sr_modell}</div>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label className="label">
-                SR-Zuschuss / Mietabsenkung <span className="required">*</span>
-              </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="ja"
-                    checked={formData.sr_zuschuss === "ja"}
-                    onChange={(e) => updateFormData("sr_zuschuss", e.target.value)}
-                  />
-                  Ja, Zuschuss vereinbart
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="nein"
-                    checked={formData.sr_zuschuss === "nein"}
-                    onChange={(e) => updateFormData("sr_zuschuss", e.target.value)}
-                  />
-                  Nein
-                </label>
-              </div>
-              {errors.sr_zuschuss && (
-                <div className="error-text">{errors.sr_zuschuss}</div>
-              )}
-              {formData.sr_zuschuss === "ja" && (
-                <div className="field-v2" style={{ marginTop: "10px" }}>
-                  <label>
-                    Zuschussbetrag (EUR) <span className="required">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    className={`input ${errors.sr_zuschuss_betrag ? "error" : ""}`}
-                    value={formData.sr_zuschuss_betrag}
-                    onChange={(e) =>
-                      updateFormData("sr_zuschuss_betrag", e.target.value)
-                    }
-                  />
-                  {errors.sr_zuschuss_betrag && (
-                    <div className="error-text">{errors.sr_zuschuss_betrag}</div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="form-group">
-              <label className="label">
-                Mietfreie Zeit statt SR <span className="required">*</span>
-              </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="ja"
-                    checked={formData.sr_mietfrei === "ja"}
-                    onChange={(e) => updateFormData("sr_mietfrei", e.target.value)}
-                  />
-                  Ja
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    value="nein"
-                    checked={formData.sr_mietfrei === "nein"}
-                    onChange={(e) => updateFormData("sr_mietfrei", e.target.value)}
-                  />
-                  Nein
-                </label>
-              </div>
-              {errors.sr_mietfrei && (
-                <div className="error-text">{errors.sr_mietfrei}</div>
-              )}
-              {formData.sr_mietfrei === "ja" && (
-                <div className="field-v2" style={{ marginTop: "10px" }}>
-                  <label>
-                    Mietfreie Monate <span className="required">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    className={`input ${errors.sr_mietfrei_monate ? "error" : ""}`}
-                    value={formData.sr_mietfrei_monate}
-                    onChange={(e) =>
-                      updateFormData("sr_mietfrei_monate", e.target.value)
-                    }
-                  />
-                  {errors.sr_mietfrei_monate && (
-                    <div className="error-text">{errors.sr_mietfrei_monate}</div>
-                  )}
-                </div>
+              {errors.sr_renoviert && (
+                <div className="error-text">{errors.sr_renoviert}</div>
               )}
             </div>
 
@@ -3853,13 +3762,17 @@ function AnwaltsMaske() {
               <div className="summary-title">
                 Instandhaltung
               </div>
-              {formData.sr_modell && (
+              {(formData.sr_renoviert ||
+                formData.sr_unrenoviert_ohne ||
+                formData.sr_unrenoviert_mit) && (
                 <div className="summary-field">
-                  <span className="summary-label">
-                    SR-Modell:
-                  </span>
+                  <span className="summary-label">SR-Modell:</span>
                   <span className="summary-value">
-                    {formData.sr_modell}
+                    {formData.sr_renoviert
+                      ? "Renoviert übergeben"
+                      : formData.sr_unrenoviert_ohne
+                        ? "Unrenoviert ohne Ausgleich"
+                        : "Unrenoviert mit Ausgleich"}
                   </span>
                 </div>
               )}
@@ -3877,28 +3790,6 @@ function AnwaltsMaske() {
                 <div className="summary-field">
                   <span className="summary-label">Jahresobergrenze:</span>
                   <span className="summary-value">{formData.kleinrep_jahr}</span>
-                </div>
-              )}
-              {formData.sr_zuschuss && (
-                <div className="summary-field">
-                  <span className="summary-label">SR-Zuschuss:</span>
-                  <span className="summary-value">
-                    {formData.sr_zuschuss === "ja"
-                      ? formData.sr_zuschuss_betrag
-                        ? `${formData.sr_zuschuss_betrag} EUR`
-                        : "Ja"
-                      : "Nein"}
-                  </span>
-                </div>
-              )}
-              {formData.sr_mietfrei && (
-                <div className="summary-field">
-                  <span className="summary-label">Mietfrei:</span>
-                  <span className="summary-value">
-                    {formData.sr_mietfrei === "ja"
-                      ? `${formData.sr_mietfrei_monate || 0} Monate`
-                      : "Nein"}
-                  </span>
                 </div>
               )}
               {formData.endrueckgabe && (
