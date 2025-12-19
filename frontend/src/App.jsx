@@ -4035,7 +4035,19 @@ function AnwaltsMaske() {
                 </p>
                 <div className="info-box-v2" style={{ marginBottom: "0.75rem" }}>
                   <p style={{ margin: 0 }}>
-                    Aktive Vorlage: <strong>{TEMPLATE_PATH}</strong>
+                    Aktive Vorlage:{" "}
+                    {downloadUrl ? (
+                      <a
+                        href={downloadUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        style={{ fontWeight: 600, textDecoration: "underline" }}
+                      >
+                        Finaler Vertrag
+                      </a>
+                    ) : (
+                      <strong>{TEMPLATE_PATH}</strong>
+                    )}
                   </p>
                 </div>
 
@@ -4085,7 +4097,19 @@ function AnwaltsMaske() {
           }}
         >
           <span className="status-pill info">
-            Vorlage: {TEMPLATE_PATH}
+            Vorlage:{" "}
+            {downloadUrl ? (
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
+                style={{ color: "inherit", textDecoration: "underline" }}
+              >
+                Finaler Vertrag
+              </a>
+            ) : (
+              TEMPLATE_PATH
+            )}
           </span>
           <span
             className={`status-pill ${showImport
