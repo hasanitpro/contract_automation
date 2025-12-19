@@ -1687,12 +1687,12 @@ function AnwaltsMaske() {
     mpb_status: "",
     mpb_vormiet: "",
     mpb_grenze: "",
-    mpb_grund_vormiete: false,
-    mpb_vormiete_betrag: "",
-    mpb_grund_modernisierung: false,
-    mpb_modernisierung_details: "",
-    mpb_grund_erstmiete: false,
-    mpb_erstmiete_details: "",
+    mpb_vormiete: false,
+    mpb_vormiete_text: "",
+    mpb_modern: false,
+    mpb_modern_text: "",
+    mpb_erstmiete: false,
+    mpb_erstmiete_text: "",
     zusatz_bk: [],
     weg_text: "",
     heizww_paragraph: "",
@@ -1869,7 +1869,7 @@ function AnwaltsMaske() {
     const srAmount = maskB.sr_zuschuss_betrag || maskB.sr_zuschuss || "";
 
     return {
-      AMOUNT: maskB.mpb_vormiete_betrag || "",
+      AMOUNT: maskB.mpb_vormiete_text || "",
       ANZAHL: keyCount || depositMonths || "",
       ARTEN: (maskA.schluessel_arten || []).filter(Boolean).join(", "),
       AUSSTATTUNG: ausstattung(),
@@ -2163,6 +2163,38 @@ function AnwaltsMaske() {
       )
         stepErrors.staffelmiete_schedule =
           "Bitte tragen Sie den Staffelmiete-Zeitplan ein.";
+      const anyMPB =
+        formData.mpb_vormiete ||
+        formData.mpb_modern ||
+        formData.mpb_erstmiete;
+      if (formData.mpb_grenze === "nein" && !anyMPB) {
+        stepErrors.mpb_vormiete =
+          "Bitte wählen Sie mindestens einen MPB-Ausnahmetatbestand.";
+      }
+      if (
+        formData.mpb_grenze === "nein" &&
+        formData.mpb_vormiete &&
+        !formData.mpb_vormiete_text
+      ) {
+        stepErrors.mpb_vormiete_text =
+          "Bitte geben Sie die Vormiete an.";
+      }
+      if (
+        formData.mpb_grenze === "nein" &&
+        formData.mpb_modern &&
+        !formData.mpb_modern_text
+      ) {
+        stepErrors.mpb_modern_text =
+          "Bitte beschreiben Sie die Modernisierung.";
+      }
+      if (
+        formData.mpb_grenze === "nein" &&
+        formData.mpb_erstmiete &&
+        !formData.mpb_erstmiete_text
+      ) {
+        stepErrors.mpb_erstmiete_text =
+          "Bitte geben Sie die Details zur Erstmiete an.";
+      }
     }
 
     if (step === 3) {
@@ -2573,9 +2605,9 @@ function AnwaltsMaske() {
             formData.mpb_status ||
             formData.mpb_vormiet ||
             formData.mpb_grenze ||
-            formData.mpb_grund_vormiete ||
-            formData.mpb_grund_modernisierung ||
-            formData.mpb_grund_erstmiete
+            formData.mpb_vormiete ||
+            formData.mpb_modern ||
+            formData.mpb_erstmiete
           ) {
             return true;
           }
@@ -2860,38 +2892,44 @@ function AnwaltsMaske() {
                       <label className="checkbox-label">
                         <input
                           type="checkbox"
-                          name="mpb_grund_vormiete"
-                          checked={!!formData.mpb_grund_vormiete}
+                          name="mpb_vormiete"
+                          checked={!!formData.mpb_vormiete}
                           onChange={(e) =>
-                            updateFormData("mpb_grund_vormiete", e.target.checked)
+                            updateFormData("mpb_vormiete", e.target.checked)
                           }
                         />
                         <span>Vormiete war höher</span>
                       </label>
+                      {errors.mpb_vormiete && (
+                        <div className="error-text">{errors.mpb_vormiete}</div>
+                      )}
                     </div>
 
                     <div className="field-v2" style={{ marginLeft: "25px" }}>
                       <label>Vormiete (EUR/Monat)</label>
                       <input
-                        type="number"
+                        type="text"
                         className="input"
                         placeholder="z.B. 1650"
-                        value={formData.mpb_vormiete_betrag}
+                        value={formData.mpb_vormiete_text}
                         onChange={(e) =>
-                          updateFormData("mpb_vormiete_betrag", e.target.value)
+                          updateFormData("mpb_vormiete_text", e.target.value)
                         }
                       />
+                      {errors.mpb_vormiete_text && (
+                        <div className="error-text">{errors.mpb_vormiete_text}</div>
+                      )}
                     </div>
 
                     <div className="field-v2">
                       <label className="checkbox-label">
                         <input
                           type="checkbox"
-                          name="mpb_grund_modernisierung"
-                          checked={!!formData.mpb_grund_modernisierung}
+                          name="mpb_modern"
+                          checked={!!formData.mpb_modern}
                           onChange={(e) =>
                             updateFormData(
-                              "mpb_grund_modernisierung",
+                              "mpb_modern",
                               e.target.checked
                             )
                           }
@@ -2906,25 +2944,28 @@ function AnwaltsMaske() {
                         rows="3"
                         className="textarea"
                         placeholder="Beschreibung der Modernisierungsmaßnahmen und Kosten..."
-                        value={formData.mpb_modernisierung_details}
+                        value={formData.mpb_modern_text}
                         onChange={(e) =>
                           updateFormData(
-                            "mpb_modernisierung_details",
+                            "mpb_modern_text",
                             e.target.value
                           )
                         }
                       />
+                      {errors.mpb_modern_text && (
+                        <div className="error-text">{errors.mpb_modern_text}</div>
+                      )}
                     </div>
 
                     <div className="field-v2">
                       <label className="checkbox-label">
                         <input
                           type="checkbox"
-                          name="mpb_grund_erstmiete"
-                          checked={!!formData.mpb_grund_erstmiete}
+                          name="mpb_erstmiete"
+                          checked={!!formData.mpb_erstmiete}
                           onChange={(e) =>
                             updateFormData(
-                              "mpb_grund_erstmiete",
+                              "mpb_erstmiete",
                               e.target.checked
                             )
                           }
@@ -2939,11 +2980,14 @@ function AnwaltsMaske() {
                         rows="3"
                         className="textarea"
                         placeholder="Datum und Umfang der Modernisierung..."
-                        value={formData.mpb_erstmiete_details}
+                        value={formData.mpb_erstmiete_text}
                         onChange={(e) =>
-                          updateFormData("mpb_erstmiete_details", e.target.value)
+                          updateFormData("mpb_erstmiete_text", e.target.value)
                         }
                       />
+                      {errors.mpb_erstmiete_text && (
+                        <div className="error-text">{errors.mpb_erstmiete_text}</div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -3683,30 +3727,30 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
-              {formData.mpb_grenze === "nein" && formData.mpb_grund_vormiete && (
+              {formData.mpb_grenze === "nein" && formData.mpb_vormiete && (
                 <div className="summary-field">
                   <span className="summary-label">Begründung: Vormiete</span>
                   <span className="summary-value">
                     Vormiete war höher
-                    {formData.mpb_vormiete_betrag
-                      ? ` (${formData.mpb_vormiete_betrag} EUR/Monat)`
+                    {formData.mpb_vormiete_text
+                      ? ` (${formData.mpb_vormiete_text} EUR/Monat)`
                       : ""}
                   </span>
                 </div>
               )}
-              {formData.mpb_grenze === "nein" && formData.mpb_grund_modernisierung && (
+              {formData.mpb_grenze === "nein" && formData.mpb_modern && (
                 <div className="summary-field">
                   <span className="summary-label">Begründung: Modernisierung</span>
                   <span className="summary-value">
-                    {formData.mpb_modernisierung_details || "Modernisierung durchgeführt"}
+                    {formData.mpb_modern_text || "Modernisierung durchgeführt"}
                   </span>
                 </div>
               )}
-              {formData.mpb_grenze === "nein" && formData.mpb_grund_erstmiete && (
+              {formData.mpb_grenze === "nein" && formData.mpb_erstmiete && (
                 <div className="summary-field">
                   <span className="summary-label">Begründung: Erstmiete</span>
                   <span className="summary-value">
-                    {formData.mpb_erstmiete_details ||
+                    {formData.mpb_erstmiete_text ||
                       "Erstmiete nach umfassender Modernisierung"}
                   </span>
                 </div>
