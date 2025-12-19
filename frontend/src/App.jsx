@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const API_BASE = "http://localhost:7071/api";
 const TEMPLATE_PATH = "source_of_truth/contract-template-annotated.html";
@@ -92,6 +92,22 @@ const normalizeMaskBKeys = (data = {}) => {
 
   if (normalized.mpb_vormiete_betrag && !normalized.mpb_vormiete_text) {
     normalized.mpb_vormiete_text = String(normalized.mpb_vormiete_betrag);
+  }
+
+  if (normalized.sr_zuschuss && !normalized.sr_ausgleich_option) {
+    normalized.sr_ausgleich_option = "zuschuss";
+  }
+
+  if (normalized.sr_mietfrei && !normalized.sr_ausgleich_option) {
+    normalized.sr_ausgleich_option = "mietfrei";
+  }
+
+  if (normalized.sr_zuschuss_betrag && !normalized.sr_ausgleich_betrag) {
+    normalized.sr_ausgleich_betrag = String(normalized.sr_zuschuss_betrag);
+  }
+
+  if (normalized.sr_mietfrei_monate && !normalized.sr_ausgleich_monate) {
+    normalized.sr_ausgleich_monate = String(normalized.sr_mietfrei_monate);
   }
 
   delete normalized.indexmiete_557b;
@@ -1807,6 +1823,9 @@ function AnwaltsMaske() {
     sr_renoviert: false,
     sr_unrenoviert_ohne: false,
     sr_unrenoviert_mit: false,
+    sr_ausgleich_option: "",
+    sr_ausgleich_betrag: "",
+    sr_ausgleich_monate: "",
     kleinrep_je_vorgang: "",
     kleinrep_jahr: "",
     endrueckgabe: "",
@@ -2228,6 +2247,14 @@ function AnwaltsMaske() {
     }
   };
 
+  const deriveSrAutoSelection = (zustand = "") => {
+    const normalized = zustand.toLowerCase();
+    if (normalized.includes("unrenoviert")) return "sr_unrenoviert_ohne";
+    if (normalized.includes("teilsaniert")) return "sr_unrenoviert_mit";
+    if (normalized.includes("renoviert")) return "sr_renoviert";
+    return null;
+  };
+
   const setSrSelection = (selected) => {
     setFormData((prev) =>
       enforceExclusivity({
@@ -2235,17 +2262,74 @@ function AnwaltsMaske() {
         sr_renoviert: false,
         sr_unrenoviert_ohne: false,
         sr_unrenoviert_mit: false,
+        sr_ausgleich_option:
+          selected === "sr_unrenoviert_mit" ? prev.sr_ausgleich_option : "",
+        sr_ausgleich_betrag:
+          selected === "sr_unrenoviert_mit" ? prev.sr_ausgleich_betrag : "",
+        sr_ausgleich_monate:
+          selected === "sr_unrenoviert_mit" ? prev.sr_ausgleich_monate : "",
         [selected]: true,
       })
     );
-    if (errors.sr_renoviert) {
+    if (
+      errors.sr_renoviert ||
+      errors.sr_ausgleich_option ||
+      errors.sr_ausgleich_betrag ||
+      errors.sr_ausgleich_monate
+    ) {
       setErrors((prev) => {
         const clone = { ...prev };
         delete clone.sr_renoviert;
+        delete clone.sr_ausgleich_option;
+        delete clone.sr_ausgleich_betrag;
+        delete clone.sr_ausgleich_monate;
         return clone;
       });
     }
   };
+
+  const setSrAusgleichOption = (value) => {
+    setFormData((prev) =>
+      enforceExclusivity({
+        ...prev,
+        sr_ausgleich_option: value,
+        sr_ausgleich_betrag: value === "zuschuss" ? prev.sr_ausgleich_betrag : "",
+        sr_ausgleich_monate: value === "mietfrei" ? prev.sr_ausgleich_monate : "",
+      })
+    );
+    if (
+      errors.sr_ausgleich_option ||
+      errors.sr_ausgleich_betrag ||
+      errors.sr_ausgleich_monate
+    ) {
+      setErrors((prev) => {
+        const clone = { ...prev };
+        delete clone.sr_ausgleich_option;
+        delete clone.sr_ausgleich_betrag;
+        delete clone.sr_ausgleich_monate;
+        return clone;
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (
+      formData.sr_renoviert ||
+      formData.sr_unrenoviert_ohne ||
+      formData.sr_unrenoviert_mit
+    ) {
+      return;
+    }
+    const autoSelection = deriveSrAutoSelection(mandantendaten?.zustand || "");
+    if (autoSelection) {
+      setSrSelection(autoSelection);
+    }
+  }, [
+    formData.sr_renoviert,
+    formData.sr_unrenoviert_ohne,
+    formData.sr_unrenoviert_mit,
+    mandantendaten?.zustand,
+  ]);
 
   const buildStepErrors = (step) => {
     const stepErrors = {};
@@ -2315,6 +2399,26 @@ function AnwaltsMaske() {
       ) {
         stepErrors.sr_renoviert =
           "Bitte wählen Sie ein Schönheitsreparaturen-Modell.";
+      }
+      if (formData.sr_unrenoviert_mit && !formData.sr_ausgleich_option) {
+        stepErrors.sr_ausgleich_option =
+          "Bitte wählen Sie eine Ausgleichsoption.";
+      }
+      if (
+        formData.sr_unrenoviert_mit &&
+        formData.sr_ausgleich_option === "zuschuss" &&
+        !formData.sr_ausgleich_betrag
+      ) {
+        stepErrors.sr_ausgleich_betrag =
+          "Bitte geben Sie den Zuschussbetrag ein.";
+      }
+      if (
+        formData.sr_unrenoviert_mit &&
+        formData.sr_ausgleich_option === "mietfrei" &&
+        !formData.sr_ausgleich_monate
+      ) {
+        stepErrors.sr_ausgleich_monate =
+          "Bitte geben Sie die Anzahl der mietfreien Monate an.";
       }
       if (!formData.kleinrep_je_vorgang)
         stepErrors.kleinrep_je_vorgang =
@@ -3295,11 +3399,14 @@ function AnwaltsMaske() {
               Instandhaltung / SR / Kleinreparaturen
             </h2>
 
-            <div className="alert alert-warning">
-              <strong>
-                ⚠️ Achtung: Schönheitsreparaturen mit Fristen
-                sind oft unwirksam!
-              </strong>
+            <div className="sr-info">
+              <div className="sr-info-title">
+                ⚠️ Schönheitsreparaturen - abhängig vom Zustand
+              </div>
+              <p className="sr-info-text">
+                Die Regelung wird automatisch basierend auf dem "Zustand bei
+                Übergabe" aus den Mandantendaten gewählt.
+              </p>
             </div>
 
             <div className="form-group">
@@ -3307,31 +3414,138 @@ function AnwaltsMaske() {
                 Schönheitsreparaturen{" "}
                 <span className="required">*</span>
               </label>
-              <div className="radio-group">
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    checked={formData.sr_renoviert}
-                    onChange={() => setSrSelection("sr_renoviert")}
-                  />
-                  Renoviert übergeben
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    checked={formData.sr_unrenoviert_ohne}
-                    onChange={() => setSrSelection("sr_unrenoviert_ohne")}
-                  />
-                  Unrenoviert ohne Ausgleich
-                </label>
-                <label className="radio-label">
-                  <input
-                    type="radio"
-                    checked={formData.sr_unrenoviert_mit}
-                    onChange={() => setSrSelection("sr_unrenoviert_mit")}
-                  />
-                  Unrenoviert mit Ausgleich
-                </label>
+              <div className="sr-case-list">
+                <div className="sr-case sr-case--green">
+                  <div className="sr-case-title">
+                    ✓ Fall 1: Renovierte/Neue Wohnung
+                  </div>
+                  <p className="sr-case-text">
+                    Zustand: "renoviert" oder "neu erstellt" → Mieter trägt
+                    Schönheitsreparaturen
+                  </p>
+                  <label className="radio-label sr-case-option">
+                    <input
+                      type="radio"
+                      name="sr_model"
+                      checked={formData.sr_renoviert}
+                      onChange={() => setSrSelection("sr_renoviert")}
+                    />
+                    <span>Mieter trägt SR (feste Klausel wird eingefügt)</span>
+                  </label>
+                </div>
+
+                <div className="sr-case sr-case--amber">
+                  <div className="sr-case-title">
+                    Fall 2a: Unrenoviert - Keine SR-Pflicht
+                  </div>
+                  <p className="sr-case-text">
+                    Zustand: "gebraucht/vertragsgemäß" → Keine SR, aber
+                    Beteiligung bei Verschlechterung
+                  </p>
+                  <label className="radio-label sr-case-option">
+                    <input
+                      type="radio"
+                      name="sr_model"
+                      checked={formData.sr_unrenoviert_ohne}
+                      onChange={() => setSrSelection("sr_unrenoviert_ohne")}
+                    />
+                    <span>
+                      Keine SR-Pflicht + hälftige Beteiligung bei erheblicher
+                      Verschlechterung
+                    </span>
+                  </label>
+                </div>
+
+                <div className="sr-case sr-case--orange">
+                  <div className="sr-case-title">
+                    Fall 2b: Unrenoviert - Renovierung gegen Ausgleich
+                  </div>
+                  <p className="sr-case-text">
+                    Zustand: "gebraucht/vertragsgemäß" → Mieter renoviert gegen
+                    Kompensation
+                  </p>
+                  <label className="radio-label sr-case-option">
+                    <input
+                      type="radio"
+                      name="sr_model"
+                      checked={formData.sr_unrenoviert_mit}
+                      onChange={() => setSrSelection("sr_unrenoviert_mit")}
+                    />
+                    <span>
+                      Mieter renoviert gegen Ausgleich (wählen Sie eine Option)
+                    </span>
+                  </label>
+
+                  <div className="sr-case-nested">
+                    <label className="radio-label sr-case-suboption">
+                      <input
+                        type="radio"
+                        name="sr_ausgleich"
+                        value="zuschuss"
+                        checked={formData.sr_ausgleich_option === "zuschuss"}
+                        onChange={(e) => setSrAusgleichOption(e.target.value)}
+                        disabled={!formData.sr_unrenoviert_mit}
+                      />
+                      <span>Option i) Einmaliger Kostenzuschuss vom Vermieter</span>
+                    </label>
+                    <div className="sr-case-field">
+                      <label className="label">Betrag (EUR)</label>
+                      <input
+                        type="text"
+                        className={`input ${errors.sr_ausgleich_betrag ? "error" : ""}`}
+                        placeholder="z.B. 2500"
+                        value={formData.sr_ausgleich_betrag}
+                        onChange={(e) =>
+                          updateFormData("sr_ausgleich_betrag", e.target.value)
+                        }
+                        disabled={
+                          !formData.sr_unrenoviert_mit ||
+                          formData.sr_ausgleich_option !== "zuschuss"
+                        }
+                      />
+                      <p className="help-text">Höhe des Zuschusses für Renovierungskosten</p>
+                      {errors.sr_ausgleich_betrag && (
+                        <div className="error-text">{errors.sr_ausgleich_betrag}</div>
+                      )}
+                    </div>
+
+                    <label className="radio-label sr-case-suboption">
+                      <input
+                        type="radio"
+                        name="sr_ausgleich"
+                        value="mietfrei"
+                        checked={formData.sr_ausgleich_option === "mietfrei"}
+                        onChange={(e) => setSrAusgleichOption(e.target.value)}
+                        disabled={!formData.sr_unrenoviert_mit}
+                      />
+                      <span>Option ii) Mietfreiheit für X Monate</span>
+                    </label>
+                    <div className="sr-case-field">
+                      <label className="label">Anzahl Monate</label>
+                      <input
+                        type="text"
+                        className={`input ${errors.sr_ausgleich_monate ? "error" : ""}`}
+                        placeholder="z.B. 2"
+                        value={formData.sr_ausgleich_monate}
+                        onChange={(e) =>
+                          updateFormData("sr_ausgleich_monate", e.target.value)
+                        }
+                        disabled={
+                          !formData.sr_unrenoviert_mit ||
+                          formData.sr_ausgleich_option !== "mietfrei"
+                        }
+                      />
+                      <p className="help-text">Dauer der Mietfreiheit</p>
+                      {errors.sr_ausgleich_monate && (
+                        <div className="error-text">{errors.sr_ausgleich_monate}</div>
+                      )}
+                    </div>
+
+                    {errors.sr_ausgleich_option && (
+                      <div className="error-text">{errors.sr_ausgleich_option}</div>
+                    )}
+                  </div>
+                </div>
               </div>
               {errors.sr_renoviert && (
                 <div className="error-text">{errors.sr_renoviert}</div>
