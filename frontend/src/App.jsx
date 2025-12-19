@@ -8,6 +8,37 @@ const ChevronLeft = () => <span>←</span>;
 const Check = () => <span>✓</span>;
 const FileText = () => <span>📄</span>;
 const UploadIcon = () => <span>📤</span>;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_REGEX = /^\+?[0-9\s().-]{6,}$/;
+const IBAN_REGEX = /^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$/;
+
+const isValidEmail = (value = "") => EMAIL_REGEX.test(value.trim());
+const isValidPhone = (value = "") => {
+  const trimmed = value.trim();
+  if (!PHONE_REGEX.test(trimmed)) return false;
+  const digits = trimmed.replace(/\D/g, "");
+  return digits.length >= 6;
+};
+const isValidIban = (value = "") => {
+  const compact = value.replace(/\s+/g, "").toUpperCase();
+  return IBAN_REGEX.test(compact);
+};
+const isPositiveNumber = (value) => {
+  const num = parseFloat(value);
+  return Number.isFinite(num) && num > 0;
+};
+const isNonNegativeNumber = (value) => {
+  const num = parseFloat(value);
+  return Number.isFinite(num) && num >= 0;
+};
+const isDateAfter = (start, end) => {
+  if (!start || !end) return true;
+  const startDate = new Date(start);
+  const endDate = new Date(end);
+  if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime()))
+    return true;
+  return endDate > startDate;
+};
 
 const normalizeMaskAKeys = (data = {}) => {
   const normalized = { ...data };
@@ -277,10 +308,16 @@ function MandantenMaske() {
         newErrors.eigene_anschrift = "Anschrift ist erforderlich.";
       if (!formData.eigene_email)
         newErrors.eigene_email = "E-Mail ist erforderlich.";
+      if (formData.eigene_email && !isValidEmail(formData.eigene_email))
+        newErrors.eigene_email = "Bitte geben Sie eine gültige E-Mail an.";
       if (!formData.eigene_telefon)
         newErrors.eigene_telefon = "Telefon ist erforderlich.";
+      if (formData.eigene_telefon && !isValidPhone(formData.eigene_telefon))
+        newErrors.eigene_telefon = "Bitte geben Sie eine gültige Telefonnummer an.";
       if (!formData.eigene_iban)
         newErrors.eigene_iban = "IBAN ist erforderlich.";
+      if (formData.eigene_iban && !isValidIban(formData.eigene_iban))
+        newErrors.eigene_iban = "Bitte geben Sie eine gültige IBAN an.";
       if (formData.wird_vertreten === "ja" && !formData.vertreten_durch)
         newErrors.vertreten_durch = "Bitte benennen Sie den Vertreter.";
       if (formData.wird_vertreten === "ja" && !formData.vollmacht)
@@ -295,6 +332,18 @@ function MandantenMaske() {
           newErrors.gegenpartei_anschrift = "Bitte geben Sie die Anschrift an.";
         if (!formData.gegenpartei_email)
           newErrors.gegenpartei_email = "Bitte geben Sie eine E-Mail an.";
+        if (
+          formData.gegenpartei_email &&
+          !isValidEmail(formData.gegenpartei_email)
+        )
+          newErrors.gegenpartei_email =
+            "Bitte geben Sie eine gültige E-Mail an.";
+        if (
+          formData.gegenpartei_telefon &&
+          !isValidPhone(formData.gegenpartei_telefon)
+        )
+          newErrors.gegenpartei_telefon =
+            "Bitte geben Sie eine gültige Telefonnummer an.";
       }
     }
 
@@ -305,10 +354,14 @@ function MandantenMaske() {
         newErrors.wohnungsart = "Bitte wählen Sie die Wohnungsart.";
       if (!formData.wohnflaeche)
         newErrors.wohnflaeche = "Wohnfläche ist erforderlich.";
+      if (formData.wohnflaeche && !isPositiveNumber(formData.wohnflaeche))
+        newErrors.wohnflaeche = "Bitte geben Sie eine gültige Wohnfläche an.";
       if (!formData.bezugsfertig)
         newErrors.bezugsfertig = "Bitte wählen Sie das Bezugsfertig-Datum.";
       if (!formData.weg)
         newErrors.weg = "Bitte wählen Sie eine Option zur WEG.";
+      if (formData.mea && !isPositiveNumber(formData.mea))
+        newErrors.mea = "Bitte geben Sie einen gültigen Miteigentumsanteil an.";
     }
 
     if (step === 2) {
@@ -324,6 +377,12 @@ function MandantenMaske() {
           "Bitte wählen Sie mindestens eine Schlüsselart aus.";
       if (!formData.schluessel_anzahl)
         newErrors.schluessel_anzahl = "Bitte geben Sie die Schlüsselanzahl an.";
+      if (
+        formData.schluessel_anzahl &&
+        !isPositiveNumber(formData.schluessel_anzahl)
+      )
+        newErrors.schluessel_anzahl =
+          "Bitte geben Sie eine gültige Schlüsselanzahl an.";
     }
 
     if (step === 3) {
@@ -334,6 +393,12 @@ function MandantenMaske() {
       if (formData.vertragsart === "Befristet") {
         if (!formData.mietende)
           newErrors.mietende = "Bitte geben Sie das Mietende an.";
+        if (
+          formData.mietbeginn &&
+          formData.mietende &&
+          !isDateAfter(formData.mietbeginn, formData.mietende)
+        )
+          newErrors.mietende = "Das Mietende muss nach dem Mietbeginn liegen.";
         if (!formData.befristungsgrund)
           newErrors.befristungsgrund = "Bitte wählen Sie den Befristungsgrund.";
         if (!formData.befristungsgrund_text)
@@ -345,6 +410,8 @@ function MandantenMaske() {
     if (step === 4) {
       if (!formData.grundmiete)
         newErrors.grundmiete = "Grundmiete ist erforderlich.";
+      if (formData.grundmiete && !isPositiveNumber(formData.grundmiete))
+        newErrors.grundmiete = "Bitte geben Sie eine gültige Grundmiete an.";
       if (!formData.zahlungsart)
         newErrors.zahlungsart = "Bitte wählen Sie die Zahlungsart.";
       if (!formData.bk_modell)
@@ -353,8 +420,34 @@ function MandantenMaske() {
         newErrors.bk_weg = "Bitte wählen Sie eine Option zur BK-Umlage.";
       if (!formData.vz_heizung)
         newErrors.vz_heizung = "Bitte geben Sie die Vorauszahlung Heizung/Warmwasser an.";
+      if (formData.vz_heizung && !isPositiveNumber(formData.vz_heizung))
+        newErrors.vz_heizung = "Bitte geben Sie einen gültigen Betrag an.";
       if (!formData.vz_bk)
         newErrors.vz_bk = "Bitte geben Sie die Betriebskosten-Vorauszahlung an.";
+      if (formData.vz_bk && !isPositiveNumber(formData.vz_bk))
+        newErrors.vz_bk = "Bitte geben Sie einen gültigen Betrag an.";
+      if (
+        formData.zuschlag_moeblierung &&
+        !isPositiveNumber(formData.zuschlag_moeblierung)
+      )
+        newErrors.zuschlag_moeblierung = "Bitte geben Sie einen gültigen Betrag an.";
+      if (
+        formData.zuschlag_teilgewerbe &&
+        !isPositiveNumber(formData.zuschlag_teilgewerbe)
+      )
+        newErrors.zuschlag_teilgewerbe = "Bitte geben Sie einen gültigen Betrag an.";
+      if (
+        formData.zuschlag_unterverm &&
+        !isPositiveNumber(formData.zuschlag_unterverm)
+      )
+        newErrors.zuschlag_unterverm = "Bitte geben Sie einen gültigen Betrag an.";
+      if (
+        formData.stellplatzmiete &&
+        !isPositiveNumber(formData.stellplatzmiete)
+      )
+        newErrors.stellplatzmiete = "Bitte geben Sie einen gültigen Betrag an.";
+      if (formData.zahler_iban && !isValidIban(formData.zahler_iban))
+        newErrors.zahler_iban = "Bitte geben Sie eine gültige IBAN an.";
     }
 
     if (step === 5) {
@@ -761,12 +854,15 @@ function MandantenMaske() {
                   <label>Telefon (optional)</label>
                   <input
                     type="tel"
-                    className="input"
+                    className={`input ${errors.gegenpartei_telefon ? "error" : ""}`}
                     value={formData.gegenpartei_telefon}
                     onChange={(e) =>
                       updateFormData("gegenpartei_telefon", e.target.value)
                     }
                   />
+                  {errors.gegenpartei_telefon && (
+                    <div className="error-text">{errors.gegenpartei_telefon}</div>
+                  )}
                 </div>
               </div>
             )}
@@ -973,13 +1069,14 @@ function MandantenMaske() {
               <label>Miteigentumsanteile (optional)</label>
               <input
                 type="number"
-                className="input"
+                className={`input ${errors.mea ? "error" : ""}`}
                 value={formData.mea}
                 onChange={(e) =>
                   updateFormData("mea", e.target.value)
                 }
                 placeholder="z.B. 125.5"
               />
+              {errors.mea && <div className="error-text">{errors.mea}</div>}
             </div>
 
             <div className="info-box-v2">
@@ -1255,39 +1352,48 @@ function MandantenMaske() {
               <label>Zuschlag für Möblierung (EUR)</label>
               <input
                 type="number"
-                className="input"
+                className={`input ${errors.zuschlag_moeblierung ? "error" : ""}`}
                 value={formData.zuschlag_moeblierung}
                 onChange={(e) =>
                   updateFormData("zuschlag_moeblierung", e.target.value)
                 }
                 placeholder="z.B. 150"
               />
+              {errors.zuschlag_moeblierung && (
+                <div className="error-text">{errors.zuschlag_moeblierung}</div>
+              )}
             </div>
 
             <div className="field-v2">
               <label>Zuschlag für teilgewerbliche Nutzung (EUR)</label>
               <input
                 type="number"
-                className="input"
+                className={`input ${errors.zuschlag_teilgewerbe ? "error" : ""}`}
                 value={formData.zuschlag_teilgewerbe}
                 onChange={(e) =>
                   updateFormData("zuschlag_teilgewerbe", e.target.value)
                 }
                 placeholder="z.B. 100"
               />
+              {errors.zuschlag_teilgewerbe && (
+                <div className="error-text">{errors.zuschlag_teilgewerbe}</div>
+              )}
             </div>
 
             <div className="field-v2">
               <label>Zuschlag für Untervermietung (EUR)</label>
               <input
                 type="number"
-                className="input"
+                className={`input ${errors.zuschlag_unterverm ? "error" : ""}`}
                 value={formData.zuschlag_unterverm}
                 onChange={(e) =>
                   updateFormData("zuschlag_unterverm", e.target.value)
                 }
                 placeholder="z.B. 80"
               />
+              {errors.zuschlag_unterverm && (
+                <div className="error-text">{errors.zuschlag_unterverm}</div>
+              )}
             </div>
 
             <div className="field-v2">
@@ -1324,13 +1430,16 @@ function MandantenMaske() {
               <label>Stellplatzmiete (EUR)</label>
               <input
                 type="number"
-                className="input"
+                className={`input ${errors.stellplatzmiete ? "error" : ""}`}
                 value={formData.stellplatzmiete}
                 onChange={(e) =>
                   updateFormData("stellplatzmiete", e.target.value)
                 }
                 placeholder="z.B. 90"
               />
+              {errors.stellplatzmiete && (
+                <div className="error-text">{errors.stellplatzmiete}</div>
+              )}
             </div>
 
             <div className="calculated-v2">
@@ -1365,11 +1474,14 @@ function MandantenMaske() {
               <label>Zahler-IBAN (optional)</label>
               <input
                 type="text"
-                className="input"
+                className={`input ${errors.zahler_iban ? "error" : ""}`}
                 value={formData.zahler_iban}
                 onChange={(e) => updateFormData("zahler_iban", e.target.value)}
                 placeholder="DE89 3704 0044 0532 0130 00"
               />
+              {errors.zahler_iban && (
+                <div className="error-text">{errors.zahler_iban}</div>
+              )}
             </div>
 
             <div className="field-v2">
@@ -2348,6 +2460,12 @@ function AnwaltsMaske() {
     if (step === 1) {
       if (!formData.vertragsart_final)
         stepErrors.vertragsart_final = "Bitte wählen Sie die Vertragsart.";
+      if (
+        formData.kuendigungsverzicht &&
+        !isNonNegativeNumber(formData.kuendigungsverzicht)
+      )
+        stepErrors.kuendigungsverzicht =
+          "Bitte geben Sie eine gültige Zahl (0 oder höher) an.";
     }
 
     if (step === 2) {
@@ -2374,6 +2492,15 @@ function AnwaltsMaske() {
       ) {
         stepErrors.mpb_vormiete_text =
           "Bitte geben Sie die Vormiete an.";
+      }
+      if (
+        formData.mpb_grenze === "nein" &&
+        formData.mpb_vormiete &&
+        formData.mpb_vormiete_text &&
+        !isPositiveNumber(formData.mpb_vormiete_text)
+      ) {
+        stepErrors.mpb_vormiete_text =
+          "Bitte geben Sie eine gültige Vormiete an.";
       }
       if (
         formData.mpb_grenze === "nein" &&
@@ -2425,11 +2552,29 @@ function AnwaltsMaske() {
       }
       if (
         formData.sr_unrenoviert_mit &&
+        formData.sr_ausgleich_option === "zuschuss" &&
+        formData.sr_ausgleich_betrag &&
+        !isPositiveNumber(formData.sr_ausgleich_betrag)
+      ) {
+        stepErrors.sr_ausgleich_betrag =
+          "Bitte geben Sie einen gültigen Betrag an.";
+      }
+      if (
+        formData.sr_unrenoviert_mit &&
         formData.sr_ausgleich_option === "mietfrei" &&
         !formData.sr_ausgleich_monate
       ) {
         stepErrors.sr_ausgleich_monate =
           "Bitte geben Sie die Anzahl der mietfreien Monate an.";
+      }
+      if (
+        formData.sr_unrenoviert_mit &&
+        formData.sr_ausgleich_option === "mietfrei" &&
+        formData.sr_ausgleich_monate &&
+        !isPositiveNumber(formData.sr_ausgleich_monate)
+      ) {
+        stepErrors.sr_ausgleich_monate =
+          "Bitte geben Sie eine gültige Monatsanzahl an.";
       }
       if (!formData.kleinrep_je_vorgang)
         stepErrors.kleinrep_je_vorgang =
@@ -2465,6 +2610,10 @@ function AnwaltsMaske() {
         stepErrors.freigabe = "Bitte wählen Sie die Freigabe.";
       if (!formData.anlagen?.length)
         stepErrors.anlagen = "Bitte wählen Sie die Anlagen aus.";
+      if (formData.mieter_email && !isValidEmail(formData.mieter_email))
+        stepErrors.mieter_email = "Bitte geben Sie eine gültige E-Mail an.";
+      if (formData.mieter_telefon && !isValidPhone(formData.mieter_telefon))
+        stepErrors.mieter_telefon = "Bitte geben Sie eine gültige Telefonnummer an.";
     }
 
     return stepErrors;
@@ -2798,7 +2947,7 @@ function AnwaltsMaske() {
               </label>
               <input
                 type="number"
-                className="input"
+                className={`input ${errors.kuendigungsverzicht ? "error" : ""}`}
                 min="0"
                 value={formData.kuendigungsverzicht}
                 onChange={(e) =>
@@ -2811,6 +2960,9 @@ function AnwaltsMaske() {
               <div className="help-text">
                 0 = kein Verzicht
               </div>
+              {errors.kuendigungsverzicht && (
+                <div className="error-text">{errors.kuendigungsverzicht}</div>
+              )}
             </div>
           </div>
         );
@@ -3922,7 +4074,7 @@ function AnwaltsMaske() {
               </label>
               <input
                 type="text"
-                className="input"
+                className={`input ${errors.mieter_email ? "error" : ""}`}
                 placeholder="Mieter-E-Mail (optional)"
                 value={formData.mieter_email}
                 onChange={(e) =>
@@ -3933,9 +4085,12 @@ function AnwaltsMaske() {
                 }
                 style={{ marginBottom: "0.5rem" }}
               />
+              {errors.mieter_email && (
+                <div className="error-text">{errors.mieter_email}</div>
+              )}
               <input
                 type="text"
-                className="input"
+                className={`input ${errors.mieter_telefon ? "error" : ""}`}
                 placeholder="Mieter-Telefon (optional)"
                 value={formData.mieter_telefon}
                 onChange={(e) =>
@@ -3945,6 +4100,9 @@ function AnwaltsMaske() {
                   )
                 }
               />
+              {errors.mieter_telefon && (
+                <div className="error-text">{errors.mieter_telefon}</div>
+              )}
             </div>
           </div>
         );
