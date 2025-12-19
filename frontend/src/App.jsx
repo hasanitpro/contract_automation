@@ -285,6 +285,9 @@ function MandantenMaske() {
         newErrors.vertreten_durch = "Bitte benennen Sie den Vertreter.";
       if (formData.wird_vertreten === "ja" && !formData.vollmacht)
         newErrors.vollmacht = "Bitte wählen Sie eine Option zur Vollmacht.";
+      if (!formData.gegenpartei)
+        newErrors.gegenpartei =
+          "Bitte wählen Sie, ob die Gegenpartei bekannt ist.";
       if (formData.gegenpartei === "ja") {
         if (!formData.gegenpartei_name)
           newErrors.gegenpartei_name = "Name der Gegenpartei ist erforderlich.";
@@ -400,8 +403,10 @@ function MandantenMaske() {
     if (!validateStep(currentStep)) return;
     const output = {
       ...normalizeMaskAKeys(formData),
+      gegenpartei_bekannt: formData.gegenpartei,
       timestamp: new Date().toISOString(),
     };
+    delete output.gegenpartei;
 
     try {
       await fetch(`${API_BASE}/save_mask_a`, {
@@ -687,6 +692,9 @@ function MandantenMaske() {
                   </label>
                 ))}
               </div>
+              {errors.gegenpartei && (
+                <div className="error-text">{errors.gegenpartei}</div>
+              )}
             </div>
 
             {formData.gegenpartei === "ja" && (
