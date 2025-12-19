@@ -9,9 +9,112 @@ const Check = () => <span>✓</span>;
 const FileText = () => <span>📄</span>;
 const UploadIcon = () => <span>📤</span>;
 
-const normalizeMaskAKeys = (data = {}) => ({ ...data });
+const normalizeMaskAKeys = (data = {}) => {
+  const normalized = { ...data };
 
-const normalizeMaskBKeys = (data = {}) => ({ ...data });
+  if (normalized.vollmacht_vorhanden && !normalized.vollmacht) {
+    normalized.vollmacht = normalized.vollmacht_vorhanden;
+  }
+
+  if (normalized.gegenpartei_bekannt && !normalized.gegenpartei) {
+    normalized.gegenpartei = normalized.gegenpartei_bekannt;
+  }
+
+  delete normalized.vollmacht_vorhanden;
+  delete normalized.gegenpartei_bekannt;
+  delete normalized.abrz;
+
+  return normalized;
+};
+
+const normalizeMaskBKeys = (data = {}) => {
+  const normalized = { ...data };
+  const toBoolean = (value) => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "string") {
+      return ["ja", "yes", "true", "1"].includes(value.toLowerCase());
+    }
+    return Boolean(value);
+  };
+
+  if (normalized.indexmiete_557b && !normalized.indexmiete) {
+    normalized.indexmiete = normalized.indexmiete_557b;
+  }
+
+  if (normalized.mietanpassung && !normalized.mietanpassung_normalfall) {
+    normalized.mietanpassung_normalfall = normalized.mietanpassung;
+  }
+
+  if (normalized.bk_zusatz_positionen && !normalized.zusatz_bk) {
+    normalized.zusatz_bk = Array.isArray(normalized.bk_zusatz_positionen)
+      ? normalized.bk_zusatz_positionen
+      : String(normalized.bk_zusatz_positionen)
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+  }
+
+  if (normalized.untervermietung_klausel && !normalized.unterverm_klausel) {
+    normalized.unterverm_klausel = normalized.untervermietung_klausel;
+  }
+
+  if (normalized.tierhaltung_ton && !normalized.tiere_ton) {
+    normalized.tiere_ton = normalized.tierhaltung_ton;
+  }
+
+  if (normalized.weg_verweis_schluessel && !normalized.weg_text) {
+    normalized.weg_text = normalized.weg_verweis_schluessel;
+  }
+
+  const mpbGrundMap = {
+    mpb_grund_vormiete: "mpb_vormiete",
+    mpb_grund_modernisierung: "mpb_modern",
+    mpb_grund_erstmiete: "mpb_erstmiete",
+  };
+
+  Object.entries(mpbGrundMap).forEach(([legacyKey, newKey]) => {
+    if (legacyKey in normalized && !(newKey in normalized)) {
+      normalized[newKey] = toBoolean(normalized[legacyKey]);
+    }
+  });
+
+  const mpbDetailsMap = {
+    mpb_vormiete_details: "mpb_vormiete_text",
+    mpb_modern_details: "mpb_modern_text",
+    mpb_erstmiete_details: "mpb_erstmiete_text",
+  };
+
+  Object.entries(mpbDetailsMap).forEach(([legacyKey, newKey]) => {
+    if (legacyKey in normalized && !(newKey in normalized)) {
+      normalized[newKey] = normalized[legacyKey];
+    }
+  });
+
+  if (normalized.mpb_vormiete_betrag && !normalized.mpb_vormiete_text) {
+    normalized.mpb_vormiete_text = String(normalized.mpb_vormiete_betrag);
+  }
+
+  delete normalized.indexmiete_557b;
+  delete normalized.mietanpassung;
+  delete normalized.bk_zusatz_positionen;
+  delete normalized.untervermietung_klausel;
+  delete normalized.tierhaltung_ton;
+  delete normalized.weg_verweis_schluessel;
+  delete normalized.sr_modell;
+  delete normalized.sr_zuschuss;
+  delete normalized.sr_zuschuss_betrag;
+  delete normalized.sr_mietfrei;
+  delete normalized.sr_mietfrei_monate;
+  delete normalized.mpb_grund_vormiete;
+  delete normalized.mpb_grund_modernisierung;
+  delete normalized.mpb_grund_erstmiete;
+  delete normalized.mpb_vormiete_details;
+  delete normalized.mpb_modern_details;
+  delete normalized.mpb_erstmiete_details;
+  delete normalized.mpb_vormiete_betrag;
+
+  return normalized;
+};
 
 
 /**********************
