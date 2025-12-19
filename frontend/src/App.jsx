@@ -1866,14 +1866,12 @@ function AnwaltsMaske() {
       return maskA.ausstattung || "keine";
     };
 
-    const srAmount = maskB.sr_zuschuss_betrag || maskB.sr_zuschuss || "";
-
     return {
       AMOUNT: maskB.mpb_vormiete_text || "",
       ANZAHL: keyCount || depositMonths || "",
       ARTEN: (maskA.schluessel_arten || []).filter(Boolean).join(", "),
       AUSSTATTUNG: ausstattung(),
-      BETRAG: srAmount || formattedDeposit,
+      BETRAG: formattedDeposit,
       BETRAG_JE: maskB.kleinrep_je_vorgang || "",
       COMPLETE_ANNEX_LIST: annexInfo.formattedList,
       CUSTOM_PET_TEXT: maskA.tiere_details || "",
@@ -1894,7 +1892,7 @@ function AnwaltsMaske() {
       LANDLORD_REPRESENTATIVE: parties.landlord.representative,
       MEA: maskA.mea || "",
       MIETBEGINN: maskA.mietbeginn || "",
-      MONATE: maskB.sr_mietfrei_monate || "",
+      MONATE: "",
       OBERGRENZE: maskB.kleinrep_jahr || "",
       OBJEKTADRESSE: maskA.objektadresse || "",
       ORT: deriveCityFromAddress(
