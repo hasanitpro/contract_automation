@@ -43,16 +43,13 @@ const isDateAfter = (start, end) => {
 const normalizeMaskAKeys = (data = {}) => {
   const normalized = { ...data };
 
-  if (normalized.vollmacht && !normalized.vollmacht_vorhanden) {
+  if ("vollmacht" in normalized && !("vollmacht_vorhanden" in normalized)) {
     normalized.vollmacht_vorhanden = normalized.vollmacht;
   }
 
-  if (normalized.gegenpartei && !normalized.gegenpartei_bekannt) {
+  if ("gegenpartei" in normalized && !("gegenpartei_bekannt" in normalized)) {
     normalized.gegenpartei_bekannt = normalized.gegenpartei;
   }
-
-  delete normalized.vollmacht;
-  delete normalized.gegenpartei;
 
   return normalized;
 };
@@ -143,26 +140,137 @@ const normalizeMaskBKeys = (data = {}) => {
     }
   }
 
-  delete normalized.indexmiete_557b;
-  delete normalized.mietanpassung;
-  delete normalized.bk_zusatz_positionen;
-  delete normalized.untervermietung_klausel;
-  delete normalized.tierhaltung_ton;
-  delete normalized.weg_verweis_schluessel;
-  delete normalized.sr_modell;
-  delete normalized.sr_ausgleich_option;
-  delete normalized.sr_ausgleich_betrag;
-  delete normalized.sr_ausgleich_monate;
-  delete normalized.mpb_grund_vormiete;
-  delete normalized.mpb_grund_modernisierung;
-  delete normalized.mpb_grund_erstmiete;
-  delete normalized.mpb_vormiete_details;
-  delete normalized.mpb_modern_details;
-  delete normalized.mpb_erstmiete_details;
-  delete normalized.mpb_vormiete_text;
-
   return normalized;
 };
+
+const createMaskADefaults = () => ({
+  rolle: "",
+  eigene_name: "",
+  eigene_anschrift: "",
+  eigene_email: "",
+  eigene_telefon: "",
+  eigene_iban: "",
+  wird_vertreten: "",
+  vertreten_durch: "",
+  vollmacht_vorhanden: "",
+  ust_id: "",
+  steuernummer: "",
+  gegenpartei_bekannt: "",
+  gegenpartei_name: "",
+  gegenpartei_anschrift: "",
+  gegenpartei_email: "",
+  gegenpartei_telefon: "",
+  objektadresse: "",
+  wohnung_bez: "",
+  wohnungsart: "",
+  wohnflaeche: "",
+  bezugsfertig: "",
+  aussenbereich: [],
+  nebenraeume: [],
+  stellplatz: "",
+  stellplatz_nr: "",
+  ausstattung: "",
+  weg: "",
+  mea: "",
+  grundriss_datei: "",
+  weg_dokument: "",
+  zustand: "",
+  uebergabeprotokoll: null,
+  laerm: "",
+  schluessel_arten: [],
+  schluessel_anzahl: "",
+  mietbeginn: "",
+  mietende: "",
+  vertragsart: "",
+  befristungsgrund: "",
+  befristungsgrund_text: "",
+  grundmiete: "",
+  zuschlag_moeblierung: "",
+  zuschlag_teilgewerbe: "",
+  zuschlag_unterverm: "",
+  vz_heizung: "",
+  vz_bk: "",
+  stellplatzmiete: "",
+  zahlungsart: "",
+  zahler_iban: "",
+  bk_modell: "",
+  bk_weg: "",
+  abrz: "",
+  nutzung: "",
+  unterverm: "",
+  tiere: "",
+  tiere_details: "",
+  kaution: "3",
+  kaution_zahlweise: "",
+  kautionsform: "",
+  uebergabedatum: "",
+});
+
+const createMaskBDefaults = () => ({
+  ro_rolle: "",
+  ro_name: "",
+  ro_email: "",
+  ro_telefon: "",
+  ro_objektadresse: "",
+  ro_wohneinheit: "",
+  ro_bezugsfertig: "",
+  ro_mietbeginn: "",
+  ro_grundmiete: "",
+  ro_gesamtmiete: "",
+  ro_vz_heizung: "",
+  vertragsart_final: "",
+  kuendigungsverzicht: "0",
+  indexmiete: "",
+  staffelmiete: "",
+  staffelmiete_schedule: "",
+  faelligkeit: "",
+  mietanpassung_normalfall: "",
+  mpb_status: "",
+  mpb_vormiet: "",
+  mpb_grenze: "",
+  mpb_vormiete: false,
+  mpb_vormiete_betrag: "",
+  mpb_vormiete_text: "",
+  mpb_modern: false,
+  mpb_modern_text: "",
+  mpb_erstmiete: false,
+  mpb_erstmiete_text: "",
+  zusatz_bk: [],
+  weg_text: "",
+  heizww_paragraph: "",
+  unterverm_klausel: "",
+  tiere_ton: "",
+  bauveraenderung: false,
+  besichtigung: false,
+  heiz_separat: false,
+  sr_renoviert: false,
+  sr_unrenoviert_ohne: false,
+  sr_unrenoviert_mit: false,
+  sr_ausgleich_option: "",
+  sr_ausgleich_betrag: "",
+  sr_ausgleich_monate: "",
+  sr_zuschuss: false,
+  sr_zuschuss_betrag: "",
+  sr_mietfrei: false,
+  sr_mietfrei_monate: "",
+  sr_risiko: false,
+  kleinrep_je: "",
+  kleinrep_jahr: "",
+  korrektur: "",
+  endrueckgabe: "",
+  haftung_536a: "",
+  umgebung_laerm: "",
+  aufrechnung: "",
+  veraeusserung: "",
+  energie_einbindung: "",
+  dsgvo: "",
+  anlagen: [],
+  bearbeitungsdatum: "",
+  bearbeiter: "",
+  freigabe: "",
+  mieter_email: "",
+  mieter_telefon: "",
+});
 
 
 /**********************
@@ -170,69 +278,7 @@ const normalizeMaskBKeys = (data = {}) => {
  **********************/
 function MandantenMaske() {
   const [currentStep, setCurrentStep] = useState(0);
-  const initialState = {
-    rolle: "",
-    eigene_name: "",
-    eigene_anschrift: "",
-    eigene_email: "",
-    eigene_telefon: "",
-    eigene_iban: "",
-    wird_vertreten: "",
-    vertreten_durch: "",
-    vollmacht_vorhanden: "",
-    ust_id: "",
-    steuernummer: "",
-    gegenpartei_bekannt: "",
-    gegenpartei_name: "",
-    gegenpartei_anschrift: "",
-    gegenpartei_email: "",
-    gegenpartei_telefon: "",
-    objektadresse: "",
-    wohnung_bez: "",
-    wohnungsart: "",
-    wohnflaeche: "",
-    bezugsfertig: "",
-    aussenbereich: [],
-    nebenraeume: [],
-    stellplatz: "",
-    stellplatz_nr: "",
-    ausstattung: "",
-    weg: "",
-    mea: "",
-    grundriss_datei: "",
-    weg_dokument: "",
-    zustand: "",
-    uebergabeprotokoll: null,
-    laerm: "",
-    schluessel_arten: [],
-    schluessel_anzahl: "",
-    mietbeginn: "",
-    mietende: "",
-    vertragsart: "",
-    befristungsgrund: "",
-    befristungsgrund_text: "",
-    grundmiete: "",
-    zuschlag_moeblierung: "",
-    zuschlag_teilgewerbe: "",
-    zuschlag_unterverm: "",
-    vz_heizung: "",
-    vz_bk: "",
-    stellplatzmiete: "",
-    zahlungsart: "",
-    zahler_iban: "",
-    bk_modell: "",
-    bk_weg: "",
-    abrz: "",
-    nutzung: "",
-    unterverm: "",
-    tiere: "",
-    tiere_details: "",
-    kaution: "3",
-    kaution_zahlweise: "",
-    kautionsform: "",
-    uebergabedatum: "",
-  };
-  const [formData, setFormData] = useState(initialState);
+  const [formData, setFormData] = useState(createMaskADefaults);
   const [errors, setErrors] = useState({});
 
   const steps = [
@@ -498,6 +544,7 @@ function MandantenMaske() {
   const exportJSON = async () => {
     if (!validateStep(currentStep)) return;
     const output = {
+      ...createMaskADefaults(),
       ...normalizeMaskAKeys(formData),
       timestamp: new Date().toISOString(),
     };
@@ -1916,72 +1963,7 @@ function AnwaltsMaske() {
   const [apiError, setApiError] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [errors, setErrors] = useState({});
-  const [formData, setFormData] = useState({
-    ro_rolle: "",
-    ro_name: "",
-    ro_email: "",
-    ro_telefon: "",
-    ro_objektadresse: "",
-    ro_wohneinheit: "",
-    ro_bezugsfertig: "",
-    ro_mietbeginn: "",
-    ro_grundmiete: "",
-    ro_gesamtmiete: "",
-    ro_vz_heizung: "",
-    vertragsart_final: "",
-    kuendigungsverzicht: "0",
-    indexmiete: "",
-    staffelmiete: "",
-    staffelmiete_schedule: "",
-    faelligkeit: "",
-    mietanpassung_normalfall: "",
-    mpb_status: "",
-    mpb_vormiet: "",
-    mpb_grenze: "",
-    mpb_vormiete: false,
-    mpb_vormiete_betrag: "",
-    mpb_vormiete_text: "",
-    mpb_modern: false,
-    mpb_modern_text: "",
-    mpb_erstmiete: false,
-    mpb_erstmiete_text: "",
-    zusatz_bk: [],
-    weg_text: "",
-    heizww_paragraph: "",
-    unterverm_klausel: "",
-    tiere_ton: "",
-    bauveraenderung: false,
-    besichtigung: false,
-    heiz_separat: false,
-    sr_renoviert: false,
-    sr_unrenoviert_ohne: false,
-    sr_unrenoviert_mit: false,
-    sr_ausgleich_option: "",
-    sr_ausgleich_betrag: "",
-    sr_ausgleich_monate: "",
-    sr_zuschuss: false,
-    sr_zuschuss_betrag: "",
-    sr_mietfrei: false,
-    sr_mietfrei_monate: "",
-    sr_risiko: false,
-    kleinrep_je: "",
-    kleinrep_jahr: "",
-    korrektur: "",
-    endrueckgabe: "",
-    haftung_536a: "",
-    umgebung_laerm: "",
-    aufrechnung: "",
-    veraeusserung: "",
-    energie_einbindung: "",
-    dsgvo: "",
-    anlagen: [],
-    bearbeitungsdatum: "",
-    bearbeiter: "",
-    freigabe: "",
-    // optional tenant contact (only in lawyer view)
-    mieter_email: "",
-    mieter_telefon: "",
-  });
+  const [formData, setFormData] = useState(createMaskBDefaults);
 
   const formatCurrency = (value) => {
     const num = parseFloat(value || "0");
@@ -2682,8 +2664,14 @@ function AnwaltsMaske() {
     setDownloadUrl("");
     setIsGenerating(true);
 
-    const normalizedMaskA = normalizeMaskAKeys(mandantendaten);
-    const normalizedMaskB = normalizeMaskBKeys(formData);
+    const normalizedMaskA = {
+      ...createMaskADefaults(),
+      ...normalizeMaskAKeys(mandantendaten),
+    };
+    const normalizedMaskB = {
+      ...createMaskBDefaults(),
+      ...normalizeMaskBKeys(formData),
+    };
     const placeholderMapping = buildPlaceholderMapping(
       normalizedMaskA,
       normalizedMaskB
