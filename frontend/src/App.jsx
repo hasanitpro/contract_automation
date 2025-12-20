@@ -1937,6 +1937,7 @@ function AnwaltsMaske() {
     mpb_vormiet: "",
     mpb_grenze: "",
     mpb_vormiete: false,
+    mpb_vormiete_betrag: "",
     mpb_vormiete_text: "",
     mpb_modern: false,
     mpb_modern_text: "",
@@ -1956,16 +1957,23 @@ function AnwaltsMaske() {
     sr_ausgleich_option: "",
     sr_ausgleich_betrag: "",
     sr_ausgleich_monate: "",
-    kleinrep_je_vorgang: "",
+    sr_zuschuss: false,
+    sr_zuschuss_betrag: "",
+    sr_mietfrei: false,
+    sr_mietfrei_monate: "",
+    sr_risiko: false,
+    kleinrep_je: "",
     kleinrep_jahr: "",
+    korrektur: "",
     endrueckgabe: "",
     haftung_536a: "",
     umgebung_laerm: "",
     aufrechnung: "",
     veraeusserung: "",
-    energieausweis_einbindung: "",
-    dsgvo_beiblatt: "",
+    energie_einbindung: "",
+    dsgvo: "",
     anlagen: [],
+    bearbeitungsdatum: "",
     bearbeiter: "",
     freigabe: "",
     // optional tenant contact (only in lawyer view)
@@ -2124,7 +2132,7 @@ function AnwaltsMaske() {
       ARTEN: (maskA.schluessel_arten || []).filter(Boolean).join(", "),
       AUSSTATTUNG: ausstattung(),
       BETRAG: formattedDeposit,
-      BETRAG_JE: maskB.kleinrep_je_vorgang || "",
+      BETRAG_JE: maskB.kleinrep_je || "",
       COMPLETE_ANNEX_LIST: annexInfo.formattedList,
       CUSTOM_PET_TEXT: maskA.tiere_details || "",
       CUSTOM_SUBLETTING_TEXT: maskB.unterverm_klausel || "",
@@ -2586,8 +2594,8 @@ function AnwaltsMaske() {
         stepErrors.sr_ausgleich_monate =
           "Bitte geben Sie eine gültige Monatsanzahl an.";
       }
-      if (!formData.kleinrep_je_vorgang)
-        stepErrors.kleinrep_je_vorgang =
+      if (!formData.kleinrep_je)
+        stepErrors.kleinrep_je =
           "Bitte wählen Sie die Kleinreparatur-Grenze je Vorgang.";
       if (!formData.kleinrep_jahr)
         stepErrors.kleinrep_jahr =
@@ -2609,11 +2617,11 @@ function AnwaltsMaske() {
     }
 
     if (step === 6) {
-      if (!formData.energieausweis_einbindung)
-        stepErrors.energieausweis_einbindung =
+      if (!formData.energie_einbindung)
+        stepErrors.energie_einbindung =
           "Bitte wählen Sie die Option zum Energieausweis.";
-      if (!formData.dsgvo_beiblatt)
-        stepErrors.dsgvo_beiblatt = "Bitte wählen Sie die DSGVO-Angabe.";
+      if (!formData.dsgvo)
+        stepErrors.dsgvo = "Bitte wählen Sie die DSGVO-Angabe.";
       if (!formData.bearbeiter)
         stepErrors.bearbeiter = "Bitte tragen Sie den Bearbeiter ein.";
       if (!formData.freigabe)
@@ -3732,10 +3740,10 @@ function AnwaltsMaske() {
               </label>
               <select
                 className="select"
-                value={formData.kleinrep_je_vorgang}
+                value={formData.kleinrep_je}
                 onChange={(e) =>
                   updateFormData(
-                    "kleinrep_je_vorgang",
+                    "kleinrep_je",
                     e.target.value
                   )
                 }
@@ -3745,8 +3753,8 @@ function AnwaltsMaske() {
                 <option value="110">110 EUR</option>
                 <option value="120">120 EUR</option>
               </select>
-              {errors.kleinrep_je_vorgang && (
-                <div className="error-text">{errors.kleinrep_je_vorgang}</div>
+              {errors.kleinrep_je && (
+                <div className="error-text">{errors.kleinrep_je}</div>
               )}
             </div>
 
@@ -3939,12 +3947,12 @@ function AnwaltsMaske() {
                     type="radio"
                     value="informativ"
                     checked={
-                      formData.energieausweis_einbindung ===
+                      formData.energie_einbindung ===
                       "informativ"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "energieausweis_einbindung",
+                        "energie_einbindung",
                         e.target.value
                       )
                     }
@@ -3956,12 +3964,12 @@ function AnwaltsMaske() {
                     type="radio"
                     value="Kenntnisnahme verpflichtend"
                     checked={
-                      formData.energieausweis_einbindung ===
+                      formData.energie_einbindung ===
                       "Kenntnisnahme verpflichtend"
                     }
                     onChange={(e) =>
                       updateFormData(
-                        "energieausweis_einbindung",
+                        "energie_einbindung",
                         e.target.value
                       )
                     }
@@ -3969,9 +3977,9 @@ function AnwaltsMaske() {
                   Kenntnisnahme verpflichtend
                 </label>
               </div>
-              {errors.energieausweis_einbindung && (
+              {errors.energie_einbindung && (
                 <div className="error-text">
-                  {errors.energieausweis_einbindung}
+                  {errors.energie_einbindung}
                 </div>
               )}
             </div>
@@ -3986,10 +3994,10 @@ function AnwaltsMaske() {
                   <input
                     type="radio"
                     value="Ja"
-                    checked={formData.dsgvo_beiblatt === "Ja"}
+                    checked={formData.dsgvo === "Ja"}
                     onChange={(e) =>
                       updateFormData(
-                        "dsgvo_beiblatt",
+                        "dsgvo",
                         e.target.value
                       )
                     }
@@ -4000,10 +4008,10 @@ function AnwaltsMaske() {
                   <input
                     type="radio"
                     value="Nein"
-                    checked={formData.dsgvo_beiblatt === "Nein"}
+                    checked={formData.dsgvo === "Nein"}
                     onChange={(e) =>
                       updateFormData(
-                        "dsgvo_beiblatt",
+                        "dsgvo",
                         e.target.value
                       )
                     }
@@ -4011,8 +4019,8 @@ function AnwaltsMaske() {
                   Nein
                 </label>
               </div>
-              {errors.dsgvo_beiblatt && (
-                <div className="error-text">{errors.dsgvo_beiblatt}</div>
+              {errors.dsgvo && (
+                <div className="error-text">{errors.dsgvo}</div>
               )}
             </div>
 
@@ -4314,13 +4322,13 @@ function AnwaltsMaske() {
                   </span>
                 </div>
               )}
-              {formData.kleinrep_je_vorgang && (
+              {formData.kleinrep_je && (
                 <div className="summary-field">
                   <span className="summary-label">
                     Kleinrep. je Vorgang:
                   </span>
                   <span className="summary-value">
-                    {formData.kleinrep_je_vorgang} EUR
+                    {formData.kleinrep_je} EUR
                   </span>
                 </div>
               )}
