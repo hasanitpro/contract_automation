@@ -66,16 +66,21 @@ const normalizeMaskBKeys = (data = {}) => {
     }
     return Boolean(value);
   };
+  const setIfMissing = (key, value) => {
+    if (!(key in normalized)) {
+      normalized[key] = value;
+    }
+  };
 
-  if (normalized.indexmiete_557b && !normalized.indexmiete) {
+  if (normalized.indexmiete_557b && !("indexmiete" in normalized)) {
     normalized.indexmiete = normalized.indexmiete_557b;
   }
 
-  if (normalized.mietanpassung && !normalized.mietanpassung_normalfall) {
+  if (normalized.mietanpassung && !("mietanpassung_normalfall" in normalized)) {
     normalized.mietanpassung_normalfall = normalized.mietanpassung;
   }
 
-  if (normalized.bk_zusatz_positionen && !normalized.zusatz_bk) {
+  if (normalized.bk_zusatz_positionen && !("zusatz_bk" in normalized)) {
     normalized.zusatz_bk = Array.isArray(normalized.bk_zusatz_positionen)
       ? normalized.bk_zusatz_positionen
       : String(normalized.bk_zusatz_positionen)
@@ -84,15 +89,15 @@ const normalizeMaskBKeys = (data = {}) => {
         .filter(Boolean);
   }
 
-  if (normalized.untervermietung_klausel && !normalized.unterverm_klausel) {
+  if (normalized.untervermietung_klausel && !("unterverm_klausel" in normalized)) {
     normalized.unterverm_klausel = normalized.untervermietung_klausel;
   }
 
-  if (normalized.tierhaltung_ton && !normalized.tiere_ton) {
+  if (normalized.tierhaltung_ton && !("tiere_ton" in normalized)) {
     normalized.tiere_ton = normalized.tierhaltung_ton;
   }
 
-  if (normalized.weg_verweis_schluessel && !normalized.weg_text) {
+  if (normalized.weg_verweis_schluessel && !("weg_text" in normalized)) {
     normalized.weg_text = normalized.weg_verweis_schluessel;
   }
 
@@ -103,8 +108,8 @@ const normalizeMaskBKeys = (data = {}) => {
   };
 
   Object.entries(mpbGrundMap).forEach(([legacyKey, newKey]) => {
-    if (legacyKey in normalized && !(newKey in normalized)) {
-      normalized[newKey] = toBoolean(normalized[legacyKey]);
+    if (legacyKey in normalized) {
+      setIfMissing(newKey, toBoolean(normalized[legacyKey]));
     }
   });
 
@@ -115,29 +120,27 @@ const normalizeMaskBKeys = (data = {}) => {
   };
 
   Object.entries(mpbDetailsMap).forEach(([legacyKey, newKey]) => {
-    if (legacyKey in normalized && !(newKey in normalized)) {
-      normalized[newKey] = normalized[legacyKey];
+    if (legacyKey in normalized) {
+      setIfMissing(newKey, normalized[legacyKey]);
     }
   });
 
-  if (normalized.mpb_vormiete_betrag && !normalized.mpb_vormiete_text) {
-    normalized.mpb_vormiete_text = String(normalized.mpb_vormiete_betrag);
+  if (normalized.mpb_vormiete_text && !("mpb_vormiete_betrag" in normalized)) {
+    normalized.mpb_vormiete_betrag = normalized.mpb_vormiete_text;
   }
 
-  if (normalized.sr_zuschuss && !normalized.sr_ausgleich_option) {
-    normalized.sr_ausgleich_option = "zuschuss";
+  if (normalized.sr_ausgleich_option === "zuschuss") {
+    setIfMissing("sr_zuschuss", true);
+    if (normalized.sr_ausgleich_betrag) {
+      setIfMissing("sr_zuschuss_betrag", normalized.sr_ausgleich_betrag);
+    }
   }
 
-  if (normalized.sr_mietfrei && !normalized.sr_ausgleich_option) {
-    normalized.sr_ausgleich_option = "mietfrei";
-  }
-
-  if (normalized.sr_zuschuss_betrag && !normalized.sr_ausgleich_betrag) {
-    normalized.sr_ausgleich_betrag = String(normalized.sr_zuschuss_betrag);
-  }
-
-  if (normalized.sr_mietfrei_monate && !normalized.sr_ausgleich_monate) {
-    normalized.sr_ausgleich_monate = String(normalized.sr_mietfrei_monate);
+  if (normalized.sr_ausgleich_option === "mietfrei") {
+    setIfMissing("sr_mietfrei", true);
+    if (normalized.sr_ausgleich_monate) {
+      setIfMissing("sr_mietfrei_monate", normalized.sr_ausgleich_monate);
+    }
   }
 
   delete normalized.indexmiete_557b;
@@ -147,17 +150,16 @@ const normalizeMaskBKeys = (data = {}) => {
   delete normalized.tierhaltung_ton;
   delete normalized.weg_verweis_schluessel;
   delete normalized.sr_modell;
-  delete normalized.sr_zuschuss;
-  delete normalized.sr_zuschuss_betrag;
-  delete normalized.sr_mietfrei;
-  delete normalized.sr_mietfrei_monate;
+  delete normalized.sr_ausgleich_option;
+  delete normalized.sr_ausgleich_betrag;
+  delete normalized.sr_ausgleich_monate;
   delete normalized.mpb_grund_vormiete;
   delete normalized.mpb_grund_modernisierung;
   delete normalized.mpb_grund_erstmiete;
   delete normalized.mpb_vormiete_details;
   delete normalized.mpb_modern_details;
   delete normalized.mpb_erstmiete_details;
-  delete normalized.mpb_vormiete_betrag;
+  delete normalized.mpb_vormiete_text;
 
   return normalized;
 };
@@ -2127,7 +2129,7 @@ function AnwaltsMaske() {
     };
 
     return {
-      AMOUNT: maskB.mpb_vormiete_text || "",
+      AMOUNT: maskB.mpb_vormiete_text || maskB.mpb_vormiete_betrag || "",
       ANZAHL: keyCount || depositMonths || "",
       ARTEN: (maskA.schluessel_arten || []).filter(Boolean).join(", "),
       AUSSTATTUNG: ausstattung(),
