@@ -43,17 +43,16 @@ const isDateAfter = (start, end) => {
 const normalizeMaskAKeys = (data = {}) => {
   const normalized = { ...data };
 
-  if (normalized.vollmacht_vorhanden && !normalized.vollmacht) {
-    normalized.vollmacht = normalized.vollmacht_vorhanden;
+  if (normalized.vollmacht && !normalized.vollmacht_vorhanden) {
+    normalized.vollmacht_vorhanden = normalized.vollmacht;
   }
 
-  if (normalized.gegenpartei_bekannt && !normalized.gegenpartei) {
-    normalized.gegenpartei = normalized.gegenpartei_bekannt;
+  if (normalized.gegenpartei && !normalized.gegenpartei_bekannt) {
+    normalized.gegenpartei_bekannt = normalized.gegenpartei;
   }
 
-  delete normalized.vollmacht_vorhanden;
-  delete normalized.gegenpartei_bekannt;
-  delete normalized.abrz;
+  delete normalized.vollmacht;
+  delete normalized.gegenpartei;
 
   return normalized;
 };
@@ -178,10 +177,10 @@ function MandantenMaske() {
     eigene_iban: "",
     wird_vertreten: "",
     vertreten_durch: "",
-    vollmacht: "",
+    vollmacht_vorhanden: "",
     ust_id: "",
     steuernummer: "",
-    gegenpartei: "",
+    gegenpartei_bekannt: "",
     gegenpartei_name: "",
     gegenpartei_anschrift: "",
     gegenpartei_email: "",
@@ -221,6 +220,7 @@ function MandantenMaske() {
     zahler_iban: "",
     bk_modell: "",
     bk_weg: "",
+    abrz: "",
     nutzung: "",
     unterverm: "",
     tiere: "",
@@ -320,12 +320,13 @@ function MandantenMaske() {
         newErrors.eigene_iban = "Bitte geben Sie eine gültige IBAN an.";
       if (formData.wird_vertreten === "ja" && !formData.vertreten_durch)
         newErrors.vertreten_durch = "Bitte benennen Sie den Vertreter.";
-      if (formData.wird_vertreten === "ja" && !formData.vollmacht)
-        newErrors.vollmacht = "Bitte wählen Sie eine Option zur Vollmacht.";
-      if (!formData.gegenpartei)
-        newErrors.gegenpartei =
+      if (formData.wird_vertreten === "ja" && !formData.vollmacht_vorhanden)
+        newErrors.vollmacht_vorhanden =
+          "Bitte wählen Sie eine Option zur Vollmacht.";
+      if (!formData.gegenpartei_bekannt)
+        newErrors.gegenpartei_bekannt =
           "Bitte wählen Sie, ob die Gegenpartei bekannt ist.";
-      if (formData.gegenpartei === "ja") {
+      if (formData.gegenpartei_bekannt === "ja") {
         if (!formData.gegenpartei_name)
           newErrors.gegenpartei_name = "Name der Gegenpartei ist erforderlich.";
         if (!formData.gegenpartei_anschrift)
@@ -496,10 +497,8 @@ function MandantenMaske() {
     if (!validateStep(currentStep)) return;
     const output = {
       ...normalizeMaskAKeys(formData),
-      gegenpartei_bekannt: formData.gegenpartei,
       timestamp: new Date().toISOString(),
     };
-    delete output.gegenpartei;
 
     try {
       await fetch(`${API_BASE}/save_mask_a`, {
@@ -725,17 +724,17 @@ function MandantenMaske() {
                         <input
                           type="radio"
                           value={value}
-                          checked={formData.vollmacht === value}
+                          checked={formData.vollmacht_vorhanden === value}
                           onChange={(e) =>
-                            updateFormData("vollmacht", e.target.value)
+                            updateFormData("vollmacht_vorhanden", e.target.value)
                           }
                         />
                         <span>{label}</span>
                       </label>
                     ))}
                   </div>
-                  {errors.vollmacht && (
-                    <div className="error-text">{errors.vollmacht}</div>
+                  {errors.vollmacht_vorhanden && (
+                    <div className="error-text">{errors.vollmacht_vorhanden}</div>
                   )}
                 </div>
               </div>
@@ -772,25 +771,25 @@ function MandantenMaske() {
                   ["ja", "Ja"],
                   ["nein", "Nein"],
                 ].map(([value, label]) => (
-                  <label key={value} className="radio-option-v2">
-                    <input
-                      type="radio"
-                      value={value}
-                      checked={formData.gegenpartei === value}
-                      onChange={(e) =>
-                        updateFormData("gegenpartei", e.target.value)
-                      }
-                    />
-                    <span>{label}</span>
-                  </label>
-                ))}
+                      <label key={value} className="radio-option-v2">
+                        <input
+                          type="radio"
+                          value={value}
+                          checked={formData.gegenpartei_bekannt === value}
+                          onChange={(e) =>
+                            updateFormData("gegenpartei_bekannt", e.target.value)
+                          }
+                        />
+                        <span>{label}</span>
+                      </label>
+                    ))}
               </div>
-              {errors.gegenpartei && (
-                <div className="error-text">{errors.gegenpartei}</div>
+              {errors.gegenpartei_bekannt && (
+                <div className="error-text">{errors.gegenpartei_bekannt}</div>
               )}
             </div>
 
-            {formData.gegenpartei === "ja" && (
+            {formData.gegenpartei_bekannt === "ja" && (
               <div className="info-box-v2">
                 <strong>Angaben zur Gegenpartei</strong>
                 <div className="field-v2" style={{ marginTop: "10px" }}>
@@ -1507,6 +1506,17 @@ function MandantenMaske() {
               {errors.bk_modell && (
                 <div className="error-text">{errors.bk_modell}</div>
               )}
+            </div>
+
+            <div className="field-v2">
+              <label>ABRZ (optional)</label>
+              <input
+                type="text"
+                className="input"
+                value={formData.abrz}
+                onChange={(e) => updateFormData("abrz", e.target.value)}
+                placeholder="z.B. relevante Angaben"
+              />
             </div>
 
             <div className="field-v2">
